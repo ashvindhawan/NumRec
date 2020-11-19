@@ -117,7 +117,8 @@ void deallocate_matrix(matrix *mat) {
  * You may assume `row` and `col` are valid.
  */
 double get(matrix *mat, int row, int col) {
-    return (double) mat->data[row][col];
+    int **data = mat->data;
+    return (double) *(*(data+row)+col);
     /* TODO: YOUR CODE HERE */
 }
 
