@@ -58,7 +58,35 @@ void rand_matrix(matrix *result, unsigned int seed, double low, double high) {
  * Return 0 upon success and non-zero upon failure.
  */
 int allocate_matrix(matrix **mat, int rows, int cols) {
-    /* TODO: YOUR CODE HERE */
+    if (rows<=0 || cols <=0) {
+        PyErr_SetString(PyExc_ValueError, "Incorrect values for row and col");
+        return -1;
+    }
+    *mat = (matrix *) malloc(sizeof(matrix));
+    if (*mat == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "malloc failed!");
+        return -1;
+    }
+    (*mat)->rows = rows;
+    (*mat)->cols = cols;
+    (*mat)->parent = NULL;
+    (*mat)->ref_cnt = 1;
+    if (rows == 0 || cols == 0) {
+        (*mat)->is_1d = 1;
+    } else {
+        (*mat)->is_1d = 0;
+    }
+    int ** data = malloc(rows*sizeof(int*));
+    for(int row = 0; row<rows; row++) {
+        int * this_row = malloc(cols*sizeof(int));
+        for(int col = 0; col<cols; col++) {
+            *(this_row+col) = 0;
+        }
+        *(data+row) = this_row;
+    }
+    (*mat)->data = data;
+    return 0;
+
 }
 
 /*
@@ -89,6 +117,7 @@ void deallocate_matrix(matrix *mat) {
  * You may assume `row` and `col` are valid.
  */
 double get(matrix *mat, int row, int col) {
+    return (double) mat->data[row][col];
     /* TODO: YOUR CODE HERE */
 }
 
