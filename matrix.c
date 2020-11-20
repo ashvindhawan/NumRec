@@ -71,7 +71,7 @@ int allocate_matrix(matrix **mat, int rows, int cols) {
     (*mat)->cols = cols;
     (*mat)->parent = NULL;
     (*mat)->ref_cnt = 1;
-    if (rows == 0 || cols == 0) {
+    if (rows == 1 || cols == 1) {
         (*mat)->is_1d = 1;
     } else {
         (*mat)->is_1d = 0;
@@ -114,14 +114,14 @@ int allocate_matrix_ref(matrix **mat, matrix *from, int row_offset, int col_offs
     
     from->ref_cnt = from->ref_cnt + 1;
     (*mat)->ref_cnt = 2;
-    if (rows == 0 || cols == 0) {
+    if (rows == 1 || cols == 1) {
         (*mat)->is_1d = 1;
     } else {
         (*mat)->is_1d = 0;
     }
     double ** data = malloc(rows*sizeof(int*));
     for(int row = 0; row<rows; row++) {
-        data[row] = from[row][row_offset];
+        data[row] = &from->data[row+row_offset][col_offset];
     }
     (*mat)->data = data;
     return 0;
@@ -155,7 +155,8 @@ double get(matrix *mat, int row, int col) {
  */
 void set(matrix *mat, int row, int col, double val) {
     /* TODO: YOUR CODE HERE */
-    matrix[row][col] = val;
+    int** data = mat->data;
+    data[row][col] = val;
 }
 
 /*
