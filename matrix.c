@@ -136,7 +136,18 @@ int allocate_matrix_ref(matrix **mat, matrix *from, int row_offset, int col_offs
  * See the spec for more information.
  */
 void deallocate_matrix(matrix *mat) {
-    /* TODO: YOUR CODE HERE */
+    if(mat == NULL) {
+        return;
+    } else if (mat->ref_cnt <= 1) {
+        int rows = mat->rows;
+        for(int row = 0; row<rows; row++) {
+            free((mat->data)[row]);
+        }
+        free(mat);
+        return;
+    } else {
+        free(mat);
+    }
 }
 
 /*
@@ -252,14 +263,26 @@ int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
  */
 int pow_matrix(matrix *result, matrix *mat, int pow) {
     /* TODO: YOUR CODE HERE */
-    
-    // mul_matrix((*placeholder)->data, mat->data, mat->data);
-    // for (int i = 0; i < pow-1; i++) {
-    //     matrix ** placeholder = malloc(sizeof(matrix *));
-    //     *placeholder = allocate_matrix(placeholder, mat->rows, mat->cols);
-    //     mul_matrix(result->data, (*placeholder)->data, mat->data);
-    // }
-    // return 0;
+    matrix ** placeholder = malloc(sizeof(matrix *));
+    allocate_matrix(placeholder, mat->rows, mat->cols);
+    mul_matrix(*placeholder, mat, mat);
+    for (int i = 0; i < pow-2; i++) {
+        mul_matrix(result, *placeholder, mat);
+        copy(result, *placeholder);
+    }
+    return 0;
+}
+
+void copy(matrix * src, matrix* dest) {
+    // int** src_data = src->data;
+    // int** dest_data = dest->data;
+    int rows = src->rows;
+    int cols = src->cols;
+    for(int row = 0; row < rows; row++) {
+        for(int col = 0; col < cols; col++) {
+            set(dest, row, col, get(src, row, col));
+        }
+    }
 }
 
 /*
