@@ -76,9 +76,9 @@ int allocate_matrix(matrix **mat, int rows, int cols) {
     } else {
         (*mat)->is_1d = 0;
     }
-    double ** data = malloc(rows*sizeof(int*));
+    double ** data = malloc(rows*sizeof(double*));
     for(int row = 0; row<rows; row++) {
-        double * this_row = malloc(cols*sizeof(int));
+        double * this_row = malloc(cols*sizeof(double));
         for(int col = 0; col<cols; col++) {
             *(this_row+col) = 0;
         }
@@ -119,7 +119,7 @@ int allocate_matrix_ref(matrix **mat, matrix *from, int row_offset, int col_offs
     } else {
         (*mat)->is_1d = 0;
     }
-    double ** data = malloc(rows*sizeof(int*));
+    double ** data = malloc(rows*sizeof(double*));
     for(int row = 0; row<rows; row++) {
         data[row] = &from->data[row+row_offset][col_offset];
     }
@@ -144,7 +144,7 @@ void deallocate_matrix(matrix *mat) {
  * You may assume `row` and `col` are valid.
  */
 double get(matrix *mat, int row, int col) {
-    int **data = mat->data;
+    double **data = mat->data;
     return (double) data[row][col];
     /* TODO: YOUR CODE HERE */
 }
@@ -155,7 +155,7 @@ double get(matrix *mat, int row, int col) {
  */
 void set(matrix *mat, int row, int col, double val) {
     /* TODO: YOUR CODE HERE */
-    int** data = mat->data;
+    double** data = mat->data;
     data[row][col] = val;
 }
 
@@ -208,6 +208,22 @@ int sub_matrix(matrix *result, matrix *mat1, matrix *mat2) {
     }
 }
 
+double dot(double* row, double* col, int len) {
+    double ans = 0;
+    for(int i = 0; i < len; i ++) {
+        ans = ans + (row[i] * col[i]);
+    }
+    return ans;
+}
+
+double* column(matrix *mat, int index) {
+    double * col = malloc((mat->rows)*sizeof(int));
+    for(int i = 0; i < mat->rows; i++) {
+        col[i] = get(mat, i, index);
+    }
+    return col;
+}
+
 /*
  * Store the result of multiplying mat1 and mat2 to `result`.
  * Return 0 upon success and a nonzero value upon failure.
@@ -215,7 +231,19 @@ int sub_matrix(matrix *result, matrix *mat1, matrix *mat2) {
  */
 int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
     /* TODO: YOUR CODE HERE */
+    int rows = result->rows;
+    int cols = result->cols;
+    double ** mat1_data = mat1->data;
+    double ** mat2_data = mat2->data;
+    for (int row = 0; row<rows; row++) {
+        for(int col = 0; col<cols; col++) {
+            double val = dot(mat1_data[row], column(mat2, col), cols);
+            set(result, row, col, val);
+        }
+    }
+    return 0;
 }
+
 
 /*
  * Store the result of raising mat to the (pow)th power to `result`.
@@ -224,6 +252,14 @@ int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
  */
 int pow_matrix(matrix *result, matrix *mat, int pow) {
     /* TODO: YOUR CODE HERE */
+    
+    // mul_matrix((*placeholder)->data, mat->data, mat->data);
+    // for (int i = 0; i < pow-1; i++) {
+    //     matrix ** placeholder = malloc(sizeof(matrix *));
+    //     *placeholder = allocate_matrix(placeholder, mat->rows, mat->cols);
+    //     mul_matrix(result->data, (*placeholder)->data, mat->data);
+    // }
+    // return 0;
 }
 
 /*
@@ -231,7 +267,15 @@ int pow_matrix(matrix *result, matrix *mat, int pow) {
  * Return 0 upon success and a nonzero value upon failure.
  */
 int neg_matrix(matrix *result, matrix *mat) {
-    /* TODO: YOUR CODE HERE */
+    int rows = result->rows;
+    int cols = result->cols;
+    for (int i = 0; i<rows; i++) {
+        for (int j = 0; j<cols; j++) {
+            double elem = get(mat, i, j);
+            set(result, i, j, -elem);
+        }
+    }
+    return 0;
 }
 
 /*
@@ -240,5 +284,17 @@ int neg_matrix(matrix *result, matrix *mat) {
  */
 int abs_matrix(matrix *result, matrix *mat) {
     /* TODO: YOUR CODE HERE */
+    int rows = result->rows;
+    int cols = result->cols;
+    for (int i = 0; i<rows; i++) {
+        for (int j = 0; j<cols; j++) {
+            double elem = get(mat, i, j);
+            if (elem < 0) {
+                elem = elem * -1;
+            }
+            set(result, i, j, elem);
+        }
+    }
+    return 0;
 }
 
