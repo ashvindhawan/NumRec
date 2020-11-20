@@ -76,9 +76,9 @@ int allocate_matrix(matrix **mat, int rows, int cols) {
     } else {
         (*mat)->is_1d = 0;
     }
-    int ** data = malloc(rows*sizeof(int*));
+    double ** data = malloc(rows*sizeof(int*));
     for(int row = 0; row<rows; row++) {
-        int * this_row = malloc(cols*sizeof(int));
+        double * this_row = malloc(cols*sizeof(int));
         for(int col = 0; col<cols; col++) {
             *(this_row+col) = 0;
         }
