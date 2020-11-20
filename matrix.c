@@ -179,6 +179,15 @@ void fill_matrix(matrix *mat, double val) {
  */
 int add_matrix(matrix *result, matrix *mat1, matrix *mat2) {
     /* TODO: YOUR CODE HERE */
+    int rows = result->rows;
+    int cols = result->cols;
+    for (int i = 0; i<rows; i++) {
+        for (int j = 0; j<cols; j++) {
+            double elem1 = get(mat1, i, j);
+            double elem2 = get(mat2, i, j);
+            set(result, i, j, elem1 + elem2);
+        }
+    }
 }
 
 /*
@@ -187,6 +196,15 @@ int add_matrix(matrix *result, matrix *mat1, matrix *mat2) {
  */
 int sub_matrix(matrix *result, matrix *mat1, matrix *mat2) {
     /* TODO: YOUR CODE HERE */
+    int rows = result->rows;
+    int cols = result->cols;
+    for (int i = 0; i<rows; i++) {
+        for (int j = 0; j<cols; j++) {
+            double elem1 = get(mat1, i, j);
+            double elem2 = get(mat2, i, j);
+            set(result, i, j, elem1 - elem2);
+        }
+    }
 }
 
 /*
