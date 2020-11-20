@@ -99,8 +99,6 @@ int allocate_matrix(matrix **mat, int rows, int cols) {
 int allocate_matrix_ref(matrix **mat, matrix *from, int row_offset, int col_offset,
                         int rows, int cols) {
     /* TODO: YOUR CODE HERE */
-    double ** from_data = from->data;
-    return 0;
 }
 
 /*
@@ -130,6 +128,7 @@ double get(matrix *mat, int row, int col) {
  */
 void set(matrix *mat, int row, int col, double val) {
     /* TODO: YOUR CODE HERE */
+    
 }
 
 /*
@@ -137,6 +136,14 @@ void set(matrix *mat, int row, int col, double val) {
  */
 void fill_matrix(matrix *mat, double val) {
     /* TODO: YOUR CODE HERE */
+    int row  = mat->rows;
+    int col = mat->cols;
+    for (int i = 0; i<row; i++) {
+        for (int j = 0; j<col; j++) {
+            set(mat, i, j, val);
+        }
+    }
+    
 }
 
 /*
