@@ -99,6 +99,33 @@ int allocate_matrix(matrix **mat, int rows, int cols) {
 int allocate_matrix_ref(matrix **mat, matrix *from, int row_offset, int col_offset,
                         int rows, int cols) {
     /* TODO: YOUR CODE HERE */
+    if (rows<=0 || cols <=0) {
+        PyErr_SetString(PyExc_ValueError, "Incorrect values for row and col");
+        return -1;
+    }
+    *mat = (matrix *) malloc(sizeof(matrix));
+    if (*mat == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "malloc failed!");
+        return -1;
+    }
+    (*mat)->rows = rows;
+    (*mat)->cols = cols;
+    (*mat)->parent = from;
+    
+    from->ref_cnt = from->ref_cnt + 1;
+    (*mat)->ref_cnt = 2;
+    if (rows == 0 || cols == 0) {
+        (*mat)->is_1d = 1;
+    } else {
+        (*mat)->is_1d = 0;
+    }
+    double ** data = malloc(rows*sizeof(int*));
+    for(int row = 0; row<rows; row++) {
+        data[row] = from[row][row_offset];
+    }
+    (*mat)->data = data;
+    return 0;
+    
 }
 
 /*
