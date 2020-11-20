@@ -99,6 +99,8 @@ int allocate_matrix(matrix **mat, int rows, int cols) {
 int allocate_matrix_ref(matrix **mat, matrix *from, int row_offset, int col_offset,
                         int rows, int cols) {
     /* TODO: YOUR CODE HERE */
+    double ** from_data = from->data;
+    return 0;
 }
 
 /*
@@ -118,7 +120,7 @@ void deallocate_matrix(matrix *mat) {
  */
 double get(matrix *mat, int row, int col) {
     int **data = mat->data;
-    return (double) *(*(data+row)+col);
+    return (double) data[row][col];
     /* TODO: YOUR CODE HERE */
 }
 
