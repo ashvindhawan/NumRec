@@ -305,10 +305,10 @@ PyObject *Matrix61c_add(Matrix61c* self, PyObject* args) {
     int cols1 = realMat1->cols;
     int rows2 = realMat2->rows;
     int cols2 = realMat2->cols;
-    add_matrix(result, realMat1, realMat2);
+    add_matrix(result, realMat1, realMat2); // I don't think this will work because add_matrix assumes result already has data instantiated
     wrap->mat = result;
     wrap->shape = get_shape(rows1, cols1);
-    return wrap;
+    return wrap; // should we return a Matrix61c * or do we have to cast it 
     /* TODO: YOUR CODE HERE */
 }
 
@@ -375,6 +375,8 @@ PyNumberMethods Matrix61c_as_number = {
  */
 PyObject *Matrix61c_set_value(Matrix61c *self, PyObject* args) {
     /* TODO: YOUR CODE HERE */
+
+    return Py_RETURN_NONE;
 }
 
 /*
@@ -382,7 +384,7 @@ PyObject *Matrix61c_set_value(Matrix61c *self, PyObject* args) {
  * Return the value at the `row`th row and `col`th column, which is a Python
  * float/int.
  */
-PyObject *Matrix61c_get_value(Matrix61c *self, PyObject* args) {
+PyObject *Matrix61c_get_value(Matrix61c *self, PyObject* args) { //is args supposed to be a tuple?
     /* TODO: YOUR CODE HERE */
 }
 
@@ -404,11 +406,57 @@ PyMethodDef Matrix61c_methods[] = {
  */
 PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
     /* TODO: YOUR CODE HERE */
-    bool isSlice = PySlice_Check(key);
-    if(isSlice) {
-        PyTupleObject indices = PySlice_GetIndicesEx(key);
-    }
     matrix* this_mat = self->mat;
+    bool isTuple = PyTuple_Check(key);
+    bool isSlice = PySlice_Check(key);
+    //bool isTupleBothSlice = Need to write methodology to check what key is once you break down its tuple
+    bool isInteger 
+    if(this_mat->is_1d != 0) {  //is a 1d matrix
+        if(isTuple) {
+            PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+            return NULL;
+        } else if (PySlice_Check(key)) {  
+            PyTupleObject indices = PySlice_GetIndicesEx(key);
+            int start = GetItem(indices, 0);
+            int end = GetItem(indices, 1);
+            matrix* result = malloc(sizeof(matrix));
+            result->is_1d = 1;
+            result->rows = this_mat->rows;
+            result->cols = this_mat->cols;
+            double ** mat_data = malloc (sizeof(double*));
+            mat_data* = malloc(sizeof(this_mat->rows * this_mat->cols)); //elements just equals numrows * numcols for 1D matrix
+            result->data = mat_data;
+            data** result_data = result->data;
+            for(int i = 0; i<(end-start); i++ {
+                result[i] = data[i + start];
+            })
+            Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
+            wrap->mat = result;
+            wrap->shape = get_shape(result->rows, result->cols);
+            return wrap;
+        } else {  //is there a better way to check if key is an integer?
+            Py_Long pos = PyLong_AsLong(key);
+            int row = (int) floor(key, this_mat->cols);
+            int col = (int) key % this_mat->cols;
+            PyTuple pos = PyTuple_New(2);
+            PyTuple_SetItem(pos, 0, row);
+            PyTuple_SetItem(pos, 1, col);
+            return Matrix61c_get_value(Matrix61c *self, pos); //still have to write this, not sure if args is a tuple
+        }
+    }
+    else { //if it is not a 1d matrix
+        if(isTuple) {
+            
+        } else if (PySlice_Check(key)) {  
+            PyTupleObject indices = PySlice_GetIndicesEx(key);
+            
+        } else {  //is there a better way to check if key is an integer?
+            
+
+        }
+    }
+    
+    
 
 }
 
