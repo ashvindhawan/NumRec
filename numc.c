@@ -295,8 +295,20 @@ PyObject *Matrix61c_add(Matrix61c* self, PyObject* args) {
         PyErr_SetString(PyExc_ValueError, "Incorrect number of elements in list");
         return -1;
     }
-    Matrix // allocate matrix, allocate matrix61c object using new , get->shape 
-    
+    matrix* result = malloc(sizeof(matrix)) // allocate matrix, allocate matrix61c object using new , get->shape 
+    //PyObject *Matrix61c_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
+    //int add_matrix(matrix *result, matrix *mat1, matrix *mat2) {
+    Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType);
+    matrix* realMat1 = self->mat;
+    matrix* realMat2 = mat2->mat;
+    rows1 = realMat1->rows;
+    cols1 = realMat1->cols;
+    rows2 = realMat2->rows;
+    cols2 = realMat2->cols;
+    add_matrix(result, realMat1, realMat2);
+    wrap->mat = result;
+    wrap->shape = get_shape(rows1, cols1);
+    return wrap;
     /* TODO: YOUR CODE HERE */
 }
 
@@ -306,10 +318,10 @@ PyObject *Matrix61c_add(Matrix61c* self, PyObject* args) {
  */
 PyObject *Matrix61c_sub(Matrix61c* self, PyObject* args) {
     /* TODO: YOUR CODE HERE */
-    if(!PyObject_TypeCheck(mat2, &Matrix61cType)) {
-        PyErr_SetString(PyExc_TypeError, "Invalid arguments");
-        return -1;
-    }
+    // if(!PyObject_TypeCheck(mat2, &Matrix61cType)) {
+    //     PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+    //     return -1;
+    // }
 }
 
 /*
@@ -318,10 +330,10 @@ PyObject *Matrix61c_sub(Matrix61c* self, PyObject* args) {
  */
 PyObject *Matrix61c_multiply(Matrix61c* self, PyObject *args) {
     /* TODO: YOUR CODE HERE */
-    if(!PyObject_TypeCheck(mat2, &Matrix61cType)) {
-        PyErr_SetString(PyExc_TypeError, "Invalid arguments");
-        return -1;
-    }y
+    // if(!PyObject_TypeCheck(mat2, &Matrix61cType)) {
+    //     PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+    //     return -1;
+    // }y
 }
 
 /*
