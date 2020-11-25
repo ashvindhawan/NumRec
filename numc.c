@@ -286,7 +286,7 @@ PyObject *Matrix61c_repr(PyObject *self) {
  * self, and the second operand can be obtained by casting `args`.
  */
 PyObject *Matrix61c_add(Matrix61c* self, PyObject* args) {
-    if(!PyObject_TypeCheck(args, &Matrix61cType)) { //do this first
+    if(!PyObject_TypeCheck(args, &Matrix61cType)) { 
         PyErr_SetString(PyExc_TypeError, "Invalid arguments");
         return -1;
     }
@@ -305,10 +305,11 @@ PyObject *Matrix61c_add(Matrix61c* self, PyObject* args) {
     int cols1 = realMat1->cols;
     int rows2 = realMat2->rows;
     int cols2 = realMat2->cols;
-    add_matrix(result, realMat1, realMat2); // I don't think this will work because add_matrix assumes result already has data instantiated
+    //MALLOC RESULT ->DATA
+    add_matrix(result, realMat1, realMat2); 
     wrap->mat = result;
     wrap->shape = get_shape(rows1, cols1);
-    return wrap; // should we return a Matrix61c * or do we have to cast it 
+    return wrap; // should we return a Matrix61c * or do we have to cast it?
     /* TODO: YOUR CODE HERE */
 }
 
@@ -384,7 +385,7 @@ PyObject *Matrix61c_set_value(Matrix61c *self, PyObject* args) {
  * Return the value at the `row`th row and `col`th column, which is a Python
  * float/int.
  */
-PyObject *Matrix61c_get_value(Matrix61c *self, PyObject* args) { //is args supposed to be a tuple?
+PyObject *Matrix61c_get_value(Matrix61c *self, PyObject* args) { //ARGS IS A PYTUPLE
     /* TODO: YOUR CODE HERE */
 }
 
@@ -415,16 +416,16 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
         if(isTuple) {
             PyErr_SetString(PyExc_TypeError, "Invalid arguments");
             return NULL;
-        } else if (PySlice_Check(key)) {  
+        } else if (isSlice) {  
             PyTupleObject indices = PySlice_GetIndicesEx(key);
-            int start = GetItem(indices, 0);
-            int end = GetItem(indices, 1);
+            int start = PyTuple_GetItem(indices, 0);
+            int end = PyTuple_GetItem(indices, 1);
             matrix* result = malloc(sizeof(matrix));
             result->is_1d = 1;
-            result->rows = this_mat->rows;
-            result->cols = this_mat->cols;
+            result->rows = 1;
+            result->cols = start-end+1;
             double ** mat_data = malloc (sizeof(double*));
-            mat_data* = malloc(sizeof(this_mat->rows * this_mat->cols)); //elements just equals numrows * numcols for 1D matrix
+            mat_data* = malloc(sizeof(result->rows * result->cols)); //elements just equals numrows * numcols for 1D matrix
             result->data = mat_data;
             data** result_data = result->data;
             for(int i = 0; i<(end-start); i++ {
@@ -434,23 +435,23 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
             wrap->mat = result;
             wrap->shape = get_shape(result->rows, result->cols);
             return wrap;
-        } else {  //is there a better way to check if key is an integer?
+        } else {  //is there a better way to check if key is an integer? --> yes, use PyLong_Check(key)
             Py_Long pos = PyLong_AsLong(key);
             int row = (int) floor(key, this_mat->cols);
             int col = (int) key % this_mat->cols;
             PyTuple pos = PyTuple_New(2);
             PyTuple_SetItem(pos, 0, row);
             PyTuple_SetItem(pos, 1, col);
-            return Matrix61c_get_value(Matrix61c *self, pos); //still have to write this, not sure if args is a tuple
+            return Matrix61c_get_value(Matrix61c *self, pos); // CONVERT THIS TO using the GET function from matrix.c
         }
     }
-    else { //if it is not a 1d matrix
+    else { /* if it is a 2D matrix */
         if(isTuple) {
             
-        } else if (PySlice_Check(key)) {  
+        } else if (isSlice) {  
             PyTupleObject indices = PySlice_GetIndicesEx(key);
             
-        } else {  //is there a better way to check if key is an integer?
+        } else {  //is there a better way to check if key is an integer? --> yes, use PyLong_Check(key)
             
 
         }
