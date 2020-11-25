@@ -295,16 +295,16 @@ PyObject *Matrix61c_add(Matrix61c* self, PyObject* args) {
         PyErr_SetString(PyExc_ValueError, "Incorrect number of elements in list");
         return -1;
     }
-    matrix* result = malloc(sizeof(matrix)) // allocate matrix, allocate matrix61c object using new , get->shape 
+    matrix* result = malloc(sizeof(matrix)); // allocate matrix, allocate matrix61c object using new , get->shape 
     //PyObject *Matrix61c_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
     //int add_matrix(matrix *result, matrix *mat1, matrix *mat2) {
-    Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType);
+    Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
     matrix* realMat1 = self->mat;
     matrix* realMat2 = mat2->mat;
-    rows1 = realMat1->rows;
-    cols1 = realMat1->cols;
-    rows2 = realMat2->rows;
-    cols2 = realMat2->cols;
+    int rows1 = realMat1->rows;
+    int cols1 = realMat1->cols;
+    int rows2 = realMat2->rows;
+    int cols2 = realMat2->cols;
     add_matrix(result, realMat1, realMat2);
     wrap->mat = result;
     wrap->shape = get_shape(rows1, cols1);
@@ -333,7 +333,7 @@ PyObject *Matrix61c_multiply(Matrix61c* self, PyObject *args) {
     // if(!PyObject_TypeCheck(mat2, &Matrix61cType)) {
     //     PyErr_SetString(PyExc_TypeError, "Invalid arguments");
     //     return -1;
-    // }y
+    // }
 }
 
 /*
@@ -362,6 +362,7 @@ PyObject *Matrix61c_pow(Matrix61c *self, PyObject *pow, PyObject *optional) {
  * define. You might find this link helpful: https://docs.python.org/3.6/c-api/typeobj.html
  */
 PyNumberMethods Matrix61c_as_number = {
+    .nb_add = Matrix61c_add,
     /* TODO: YOUR CODE HERE */
 };
 
@@ -403,6 +404,12 @@ PyMethodDef Matrix61c_methods[] = {
  */
 PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
     /* TODO: YOUR CODE HERE */
+    bool isSlice = PySlice_Check(key);
+    if(isSlice) {
+        PyTupleObject indices = PySlice_GetIndicesEx(key);
+    }
+    matrix* this_mat = self->mat;
+
 }
 
 /*
@@ -410,6 +417,7 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
  */
 int Matrix61c_set_subscript(Matrix61c* self, PyObject *key, PyObject *v) {
     /* TODO: YOUR CODE HERE */
+    
 }
 
 PyMappingMethods Matrix61c_mapping = {
