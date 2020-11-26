@@ -295,7 +295,6 @@ PyObject *Matrix61c_add(Matrix61c* self, PyObject* args) {
         PyErr_SetString(PyExc_ValueError, "Incorrect number of elements in list");
         return -1;
     }
-    matrix* result = malloc(sizeof(matrix)); // allocate matrix, allocate matrix61c object using new , get->shape 
     //PyObject *Matrix61c_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
     //int add_matrix(matrix *result, matrix *mat1, matrix *mat2) {
     Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
@@ -303,7 +302,8 @@ PyObject *Matrix61c_add(Matrix61c* self, PyObject* args) {
     matrix* realMat2 = mat2->mat;
     int rows1 = realMat1->rows;
     int cols1 = realMat1->cols;
-    //we need to MALLOC RESULT ->DATA here
+    matrix** result = malloc(sizeof(matrix*)); // allocate matrix, allocate matrix61c object using new , get->shape 
+    allocate_matrix(result, rows1, cols1); //we forgot that we already made an allocate_matrix method in matrix.c
     add_matrix(result, realMat1, realMat2); 
     wrap->mat = result;
     wrap->shape = get_shape(rows1, cols1);
