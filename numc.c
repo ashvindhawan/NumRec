@@ -408,8 +408,9 @@ PyMethodDef Matrix61c_methods[] = {
 PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
     /* TODO: YOUR CODE HERE */
     matrix* this_mat = self->mat;
-    bool isTuple = PyTuple_Check(key);
+    bool isTuple = PyTuple_Check(key); //this returns an int idk if thats ok or not
     bool isSlice = PySlice_Check(key);
+    bool isLong = PyLong_Check(key);
     //bool isTupleBothSlice = Need to write methodology to check what key is once you break down its tuple
     bool isInteger 
     if(this_mat->is_1d != 0) {  //is a 1d matrix
@@ -418,8 +419,8 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
             return NULL;
         } else if (isSlice) {  
             PyTupleObject indices = PySlice_GetIndicesEx(key);
-            int start = PyTuple_GetItem(indices, 0);
-            int end = PyTuple_GetItem(indices, 1);
+            int start = PyTuple_GetItem(indices, 0); //pretty sure we need some casts here
+            int end = PyTuple_GetItem(indices, 1); //and here
             matrix* result = malloc(sizeof(matrix));
             result->is_1d = 1;
             result->rows = 1;
@@ -433,21 +434,50 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
             })
             Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
             wrap->mat = result;
-            wrap->shape = get_shape(result->rows, result->cols);
+            wrap->shape = get_shape(result->rows, result->cols); //probs need a cast here as well
             return wrap;
-        } else {  //is there a better way to check if key is an integer? --> yes, use PyLong_Check(key)
+        } else if (isLong) {  
             Py_Long pos = PyLong_AsLong(key);
             int row = (int) floor(key, this_mat->cols);
             int col = (int) key % this_mat->cols;
             PyTuple pos = PyTuple_New(2);
             PyTuple_SetItem(pos, 0, row);
             PyTuple_SetItem(pos, 1, col);
-            return Matrix61c_get_value(Matrix61c *self, pos); // CONVERT THIS TO using the GET function from matrix.c
+            return Matrix61c_get_value(Matrix61c *self, pos); // CONVERT THIS TO using the GET function from matrix.c (Gonna try to do this in
+            // the 2d case and we can see which version works)
+        } else {
+            //error?
         }
     }
     else { /* if it is a 2D matrix */
         if(isTuple) {
-            
+            //case 1: int int
+            PyObject* firstItem = PyTuple_GetItem(0);
+            PyObject* secondItem = PyTuple_GetItem(1);
+            bool firstIsInt = PyLong_Check(firstItem);
+            bool firstIsSlice = PySlice_Check(firstItem);
+            bool secondIsInt = PyLong_Check(secondItem);
+            bool secondIsSlice = PySlice_Check(secondItem);
+            long firstInt = NULL;
+            long secondInt = NULL;
+            if (firstIsInt && secondIsInt) {
+                firstInt = PyLong_AsLong(firstItem);
+                secondInt = PyLong_AsLong(secondItem);
+                double val = get(this_mat, firstInt, secondInt);
+                return val; // I think we can just return a double right?
+            } else if (firstIsSlice && secondIsInt) {
+                secondInt = PyLong_AsLong(secondItem);
+                PyTupleObject indices = PySlice_GetIndicesEx(firstItem);
+                int start = PyTuple_GetItem(indices, 0); //pretty sure we need some casts here
+                int end = PyTuple_GetItem(indices, 1); //might need casts
+                
+            } else if (firstIsInt && secondIsSlice) {
+                firstInt = PyLong_AsLong(firstItem);
+            } else if (firstIsSlice && secondIsSlice) {
+
+            } else {
+
+            }
         } else if (isSlice) {  
             PyTupleObject indices = PySlice_GetIndicesEx(key);
             
