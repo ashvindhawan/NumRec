@@ -427,9 +427,14 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
             mat_data* = malloc(sizeof(result->rows * result->cols)); 
             result->data = mat_data;
             data** result_data = result->data;
-            for(int i = 0; i<(end-start); i++ {
-                result[i] = data[i + start];
-            })
+            //This was yours, I changed it to what is below
+            // for(int i = 0; i<(end-start); i++) {
+            //     result[i] = data[i + start];
+            // }
+            //I think this should be:
+            for (int i = 0; i<(end-start); i++) {
+                mat_data[i] = this_mat->data[i+start];
+            }
             Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
             wrap->mat = result;
             wrap->shape = get_shape(result->rows, result->cols); //probs need a cast here as well --> Ashvin: i actually think this one is fine based on how they used it previously
@@ -468,8 +473,27 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
                 PyTupleObject indices = PySlice_GetIndicesEx(firstItem);
                 int start = PyTuple_GetItem(indices, 0); //pretty sure we need some casts here
                 int end = PyTuple_GetItem(indices, 1); //might need casts
+                matrix* result = malloc(sizeof(matrix));
+                result->is_1d = 1;
+                result->rows = start-end+1;
+                result->cols = 1;
+                double ** mat_data = malloc (sizeof(double*));
+                mat_data* = malloc(sizeof(result->rows * result->cols)); 
+                result->data = mat_data;
+                data** result_data = result->data;
+                for(int i = 0; i<(end-start); i++) {
+                    mat_data[i] = this_mat->data[i + start];
+                }
+                result->data = column(result, secondInt);
+                Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
+                wrap->mat = result;
+                wrap->shape = get_shape(result->rows, result->cols);
             } else if (firstIsInt && secondIsSlice) { // case 3: int, slice
                 firstInt = PyLong_AsLong(firstItem);
+                PyTupleObject indices = PySlice_GetIndicesEx(secondItem);
+                int start = PyTuple_GetItem(indices, 0);
+                int end = PyTuple_GetItem(indices,1);
+
             } else if (firstIsSlice && secondIsSlice) { // case 4: slice, slice
 
             } else {
