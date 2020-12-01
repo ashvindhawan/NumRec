@@ -121,18 +121,6 @@ int allocate_matrix_ref(matrix **mat, matrix *from, int row_offset, int col_offs
     }
     double ** data = malloc(rows*sizeof(double*));
 
-    //return (PyObject *) PyLong_FromLong(col_offset);
-    //double ** from_data = from->data;
-
-    // if((*mat)->is_1d = 1)) {
-    //     for(int row = 0; row<rows; row++) {
-    //         data[row] = &(from->data[row+row_offset][col_offset]);
-    //     }
-    // }
-// for (int i = row_offset; i < rows+row_offset; i++) {        
-//     double *val = from->data[i]+col_offset;        
-//     data[i - row_offset] = val;    
-//     }
     for (int i = 0; i < rows ; i++) {       
         double *addr = from->data[row_offset+i] + col_offset;  
         data[i] = addr;    
