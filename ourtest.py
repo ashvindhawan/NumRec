@@ -1,4 +1,5 @@
 import numc as nc
 
-mat = nc.Matrix(1,5)
-print(mat[1:3])
+mat = nc.Matrix(9,9)
+print(mat[1:5,2])
+

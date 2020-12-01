@@ -99,7 +99,6 @@ int allocate_matrix(matrix **mat, int rows, int cols) {
 int allocate_matrix_ref(matrix **mat, matrix *from, int row_offset, int col_offset,
                         int rows, int cols) {
     /* TODO: YOUR CODE HERE */
-    return 122;
     if (rows<=0 || cols <=0) {
         PyErr_SetString(PyExc_ValueError, "Incorrect values for row and col");
         return -1;
@@ -121,10 +120,14 @@ int allocate_matrix_ref(matrix **mat, matrix *from, int row_offset, int col_offs
         (*mat)->is_1d = 0;
     }
     double ** data = malloc(rows*sizeof(double*));
-    double* from_data = from->data;
+    
+
+    //return (PyObject *) PyLong_FromLong(col_offset);
+    //double ** from_data = from->data;
     for(int row = 0; row<rows; row++) {
-        data[row] = &from->data[row+row_offset][col_offset];
+       data[row] = &(from->data[row+row_offset][col_offset]);
     }
+    
     (*mat)->data = data;
     return 0;
     
