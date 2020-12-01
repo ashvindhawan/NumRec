@@ -296,20 +296,20 @@ PyObject *Matrix61c_add(Matrix61c* self, PyObject* args) {
         PyErr_SetString(PyExc_ValueError, "Incorrect number of elements in list");
         return -1;
     }
-    //PyObject *Matrix61c_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
-    //int add_matrix(matrix *result, matrix *mat1, matrix *mat2) {
+
     Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
     matrix* realMat1 = self->mat;
     matrix* realMat2 = mat2->mat;
     int rows1 = realMat1->rows;
     int cols1 = realMat1->cols;
+
     matrix** result = malloc(sizeof(matrix*)); // allocate matrix, allocate matrix61c object using new , get->shape 
     allocate_matrix(result, rows1, cols1); //we forgot that we already made an allocate_matrix method in matrix.c
     add_matrix(result, realMat1, realMat2); 
+
     wrap->mat = result;
     wrap->shape = get_shape(rows1, cols1);
-    return wrap; // should we return a Matrix61c * or do we have to cast it?
-    /* TODO: YOUR CODE HERE */
+    return (PyObject *) wrap; // should we return a Matrix61c * or do we have to cast it?
 }
 
 /*
@@ -317,11 +317,29 @@ PyObject *Matrix61c_add(Matrix61c* self, PyObject* args) {
  * self, and the second operand can be obtained by casting `args`.
  */
 PyObject *Matrix61c_sub(Matrix61c* self, PyObject* args) {
-    /* TODO: YOUR CODE HERE */
-    // if(!PyObject_TypeCheck(mat2, &Matrix61cType)) {
-    //     PyErr_SetString(PyExc_TypeError, "Invalid arguments");
-    //     return -1;
-    // }
+    if(!PyObject_TypeCheck(args, &Matrix61cType)) { 
+        PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+        return -1;
+    }
+    Matrix61c* mat2 = (Matrix61c*) args;
+    if(!(self->mat->rows==mat2->mat->rows && self->mat->cols==mat2->mat->cols)) {
+        PyErr_SetString(PyExc_ValueError, "Incorrect number of elements in list");
+        return -1;
+    }
+
+    Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
+    matrix* realMat1 = self->mat;
+    matrix* realMat2 = mat2->mat;
+    int rows1 = realMat1->rows;
+    int cols1 = realMat1->cols;
+
+    matrix** result = malloc(sizeof(matrix*)); // allocate matrix, allocate matrix61c object using new , get->shape 
+    allocate_matrix(result, rows1, cols1); //we forgot that we already made an allocate_matrix method in matrix.c
+    sub_matrix(result, realMat1, realMat2); 
+
+    wrap->mat = result;
+    wrap->shape = get_shape(rows1, cols1);
+    return  (PyObject *) wrap; // should we return a Matrix61c * or do we have to cast it?
 }
 
 /*
@@ -330,17 +348,49 @@ PyObject *Matrix61c_sub(Matrix61c* self, PyObject* args) {
  */
 PyObject *Matrix61c_multiply(Matrix61c* self, PyObject *args) {
     /* TODO: YOUR CODE HERE */
-    // if(!PyObject_TypeCheck(mat2, &Matrix61cType)) {
-    //     PyErr_SetString(PyExc_TypeError, "Invalid arguments");
-    //     return -1;
-    // }
+    if(!PyObject_TypeCheck(args, &Matrix61cType)) { 
+        PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+        return -1;
+    }
+    Matrix61c* mat2 = (Matrix61c*) args;
+    if(!(self->mat->cols==mat2->mat->rows)) {
+        PyErr_SetString(PyExc_ValueError, "Incorrect number of elements in list");
+        return -1;
+    }
+
+    Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
+    matrix* realMat1 = self->mat;
+    matrix* realMat2 = mat2->mat;
+    int rows1 = realMat1->rows;
+    int cols2 = realMat2->cols;
+
+    matrix** result = malloc(sizeof(matrix*)); // allocate matrix, allocate matrix61c object using new , get->shape 
+    allocate_matrix(result, rows1, cols2; //we forgot that we already made an allocate_matrix method in matrix.c
+    mul_matrix(result, realMat1, realMat2); 
+
+    wrap->mat = result;
+    wrap->shape = get_shape(rows1, cols2);
+    return  (PyObject *) wrap; // should we return a Matrix61c * or do we have to cast it?
+    
 }
 
 /*
  * Negates the given numc.Matrix.
  */
 PyObject *Matrix61c_neg(Matrix61c* self) {
-    /* TODO: YOUR CODE HERE */
+    Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
+    matrix* realMat1 = self->mat;
+    matrix* realMat2 = mat2->mat;
+    int rows1 = realMat1->rows;
+    int cols1 = realMat1->cols;
+
+    matrix** result = malloc(sizeof(matrix*)); // allocate matrix, allocate matrix61c object using new , get->shape 
+    allocate_matrix(result, rows1, cols1); //we forgot that we already made an allocate_matrix method in matrix.c
+    neg_matrix(result, realMat1, realMat2); 
+
+    wrap->mat = result;
+    wrap->shape = get_shape(rows1, cols1);
+    return  (PyObject *) wrap; // should we return a Matrix61c * or do we have to cast it?
 }
 
 /*
@@ -404,6 +454,9 @@ PyMethodDef Matrix61c_methods[] = {
  * Given a numc.Matrix `self`, index into it with `key`. Return the indexed result.
  */
 PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
+    double * ret;
+    *ret = 2;
+    return ret;
     /* TODO: YOUR CODE HERE */
     matrix* this_mat = self->mat;
     bool isTuple = PyTuple_Check(key); //this returns an int idk if thats ok or not --> yeah should be okay
@@ -532,6 +585,8 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
  */
 int Matrix61c_set_subscript(Matrix61c* self, PyObject *key, PyObject *v) {
     /* TODO: YOUR CODE HERE */
+    v = Matrix61c_subscript(self, key);
+    return 0;
     
 }
 
