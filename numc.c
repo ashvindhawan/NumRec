@@ -550,12 +550,12 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
                 wrap->mat = *result;
                 wrap->shape = get_shape((*result)->rows, (*result)->cols);
                 return (PyObject *) wrap;
-            } else if (firstIsSlice && secondIsSlice) { // case 4: slice, slice
+            } else if (firstIsSlice && secondIsSlice) { // case 4: slice, slice TODO
 
             } else {
 
             }
-        } else if (isSlice) {  
+        } else if (isSlice) {   //TODO
             Py_ssize_t * length = this_mat->rows;
             Py_ssize_t * start;
             Py_ssize_t * stop;
