@@ -296,7 +296,6 @@ PyObject *Matrix61c_add(Matrix61c* self, PyObject* args) {
         PyErr_SetString(PyExc_ValueError, "Incorrect number of elements in list");
         return -1;
     }
-
     Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
     matrix* realMat1 = self->mat;
     matrix* realMat2 = mat2->mat;
@@ -305,9 +304,9 @@ PyObject *Matrix61c_add(Matrix61c* self, PyObject* args) {
 
     matrix** result = malloc(sizeof(matrix*)); // allocate matrix, allocate matrix61c object using new , get->shape 
     allocate_matrix(result, rows1, cols1); //we forgot that we already made an allocate_matrix method in matrix.c
-    add_matrix(result, realMat1, realMat2); 
+    add_matrix(*result, realMat1, realMat2); 
 
-    wrap->mat = result;
+    wrap->mat = *result;
     wrap->shape = get_shape(rows1, cols1);
     return (PyObject *) wrap; // should we return a Matrix61c * or do we have to cast it?
 }
@@ -497,6 +496,8 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
             // the 2d case and we can see which version works)
         } else {
             //error? -->Ashvin: yeah i guess so lmao
+            PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+            return NULL;
         }
     }
     else { /* if it is a 2D matrix */
@@ -551,17 +552,46 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
                 wrap->shape = get_shape((*result)->rows, (*result)->cols);
                 return (PyObject *) wrap;
             } else if (firstIsSlice && secondIsSlice) { // case 4: slice, slice
-
+                Py_ssize_t  length1 = this_mat->rows;
+                Py_ssize_t  start1;
+                Py_ssize_t  stop1;
+                Py_ssize_t  step1;  
+                Py_ssize_t  slicelength1;
+                PySlice_GetIndicesEx(firstItem, length1, &start1, &stop1, &step1, &slicelength1);
+                Py_ssize_t  length2 = this_mat->rows;
+                Py_ssize_t  start2;
+                Py_ssize_t  stop2;
+                Py_ssize_t  step2;  
+                Py_ssize_t  slicelength2;
+                PySlice_GetIndicesEx(secondItem, length2, &start2, &stop2, &step2, &slicelength2);    
+                matrix** result = malloc(sizeof(matrix*));
+                int rowOff = start1;
+                int colOff = start2;
+                //int allocate_matrix_ref(matrix **mat, matrix *from, int row_offset, int col_offset,
+                       // int rows, int cols
+                allocate_matrix_ref(result, this_mat, rowOff, colOff, slicelength1, slicelength2);
+                Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
+                wrap->mat = *result;
+                wrap->shape = get_shape((*result)->rows, (*result)->cols);
+                return (PyObject *) wrap;
             } else {
-
+                
             }
         } else if (isSlice) {  
-            Py_ssize_t * length = this_mat->rows;
-            Py_ssize_t * start;
-            Py_ssize_t * stop;
-            Py_ssize_t * step;  
-            Py_ssize_t * slicelength;
-            PySlice_GetIndicesEx(key, &length, &start, &stop, &step, &slicelength);   
+            Py_ssize_t length = this_mat->rows;
+            Py_ssize_t start;
+            Py_ssize_t stop;
+            Py_ssize_t step;  
+            Py_ssize_t slicelength;
+            PySlice_GetIndicesEx(key, length, &start, &stop, &step, &slicelength);
+            matrix** result = malloc(sizeof(matrix*));
+            int rowOff = start;
+            int colOff = 0;
+            allocate_matrix_ref(result, this_mat, rowOff, colOff, slicelength, this_mat->cols); 
+            Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
+            wrap->mat = *result;
+            wrap->shape = get_shape((*result)->rows, (*result)->cols);
+            return (PyObject *) wrap;
         } else if (isLong) { 
             matrix** result = malloc(sizeof(matrix*));
             int rowOff = PyLong_AsLong(key);
