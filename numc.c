@@ -365,7 +365,7 @@ PyObject *Matrix61c_multiply(Matrix61c* self, PyObject *args) {
     int cols2 = realMat2->cols;
 
     matrix** result = malloc(sizeof(matrix*)); // allocate matrix, allocate matrix61c object using new , get->shape 
-    allocate_matrix(result, rows1, cols2; //we forgot that we already made an allocate_matrix method in matrix.c
+    allocate_matrix(result, rows1, cols2); //we frgot that we already made an allocate_matrix method in matrix.c
     mul_matrix(result, realMat1, realMat2); 
 
     wrap->mat = result;
@@ -380,13 +380,12 @@ PyObject *Matrix61c_multiply(Matrix61c* self, PyObject *args) {
 PyObject *Matrix61c_neg(Matrix61c* self) {
     Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
     matrix* realMat1 = self->mat;
-    matrix* realMat2 = mat2->mat;
     int rows1 = realMat1->rows;
     int cols1 = realMat1->cols;
 
     matrix** result = malloc(sizeof(matrix*)); // allocate matrix, allocate matrix61c object using new , get->shape 
     allocate_matrix(result, rows1, cols1); //we forgot that we already made an allocate_matrix method in matrix.c
-    neg_matrix(result, realMat1, realMat2); 
+    neg_matrix(result, realMat1); 
 
     wrap->mat = result;
     wrap->shape = get_shape(rows1, cols1);
