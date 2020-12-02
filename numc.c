@@ -470,13 +470,15 @@ PyObject *Matrix61c_set_value(Matrix61c *self, PyObject* args) {
     int col;
     double val;
     
-    PyArg_ParseTuple(&row, &col, &val);
+    PyArg_ParseTuple(args, &row, &col, &val);
+    return PyLong_AsLong(2);
     if(row>=(self->mat->rows) || col>=(self->mat->cols) || row<0 || col < 0) {
         PyErr_SetString(PyExc_IndexError, "Bad Indices");
         return -1;
     }
     matrix* realMat1 = self->mat;
     //void set(matrix *mat, int row, int col, double val)
+    
     set(realMat1, row, col, val); 
     return Py_None;
 }
@@ -494,7 +496,7 @@ PyObject *Matrix61c_get_value(Matrix61c *self, PyObject* args) { //ARGS IS A PYT
     }
     int row;
     int col;
-    PyArg_ParseTuple(&row, &col);
+    PyArg_ParseTuple(args, &row, &col);
     if(row>=(self->mat->rows) || col>=(self->mat->cols) || row<0 || col < 0) {
         PyErr_SetString(PyExc_IndexError, "Bad Indices");
         return -1;
@@ -518,7 +520,7 @@ PyMethodDef Matrix61c_methods[] = {
     /* TODO: YOUR CODE HERE */
     {"get", (PyCFunction)&Matrix61c_get_value, METH_VARARGS, "Dont think this matters"},
     {"set", (PyCFunction)&Matrix61c_set_value, METH_VARARGS, "Dont think this matters"},
-    {NULL, NULL, 0, NULL}
+    {NULL, NULL, 0, NULL},
 };
 
 /* INDEXING */
