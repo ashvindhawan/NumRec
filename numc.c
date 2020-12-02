@@ -1,6 +1,5 @@
 #include "numc.h"
 #include <structmember.h>
-#include "stdbool.h"
 
 PyTypeObject Matrix61cType;
 
@@ -518,8 +517,8 @@ PyObject *Matrix61c_get_value(Matrix61c *self, PyObject* args) { //ARGS IS A PYT
  */
 PyMethodDef Matrix61c_methods[] = {
     /* TODO: YOUR CODE HERE */
-    {"get", (PyCFunction)Matrix61c_get_value, METH_VARARGS, "Dont think this matters"},
-    {"set", (PyCFunction)Matrix61c_set_value, METH_VARARGS, "Dont think this matters"},
+    {"get", (PyCFunction)&Matrix61c_get_value, METH_VARARGS, "Dont think this matters"},
+    {"set", (PyCFunction)&Matrix61c_set_value, METH_VARARGS, "Dont think this matters"},
     {NULL, NULL, 0, NULL},
 };
 
@@ -532,9 +531,9 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
     
     /* TODO: YOUR CODE HERE */
     matrix* this_mat = self->mat;
-    bool isTuple = PyTuple_Check(key); //this returns an int idk if thats ok or not --> yeah should be okay
-    bool isSlice = PySlice_Check(key);
-    bool isLong = PyLong_Check(key);
+    int isTuple = PyTuple_Check(key); //this returns an int idk if thats ok or not --> yeah should be okay
+    int isSlice = PySlice_Check(key);
+    int isLong = PyLong_Check(key);
     if(this_mat->is_1d != 0) {  //is a 1d matrix
         if(isTuple) {
             PyErr_SetString(PyExc_TypeError, "Invalid arguments");
@@ -582,10 +581,10 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
         if(isTuple) {
             PyObject* firstItem = PyTuple_GetItem(key, 0); //Ashvin: do we need casts here?
             PyObject* secondItem = PyTuple_GetItem(key, 1); //Ashvin :do we need casts here?
-            bool firstIsInt = PyLong_Check(firstItem);
-            bool firstIsSlice = PySlice_Check(firstItem);
-            bool secondIsInt = PyLong_Check(secondItem);
-            bool secondIsSlice = PySlice_Check(secondItem);
+            int firstIsInt = PyLong_Check(firstItem);
+            int firstIsSlice = PySlice_Check(firstItem);
+            int secondIsInt = PyLong_Check(secondItem);
+            int secondIsSlice = PySlice_Check(secondItem);
             long firstInt = NULL;
             long secondInt = NULL;
             if (firstIsInt && secondIsInt) {  //case 1: int, int
