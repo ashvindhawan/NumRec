@@ -518,8 +518,8 @@ PyObject *Matrix61c_get_value(Matrix61c *self, PyObject* args) { //ARGS IS A PYT
  */
 PyMethodDef Matrix61c_methods[] = {
     /* TODO: YOUR CODE HERE */
-    {"get", (PyCFunction)&Matrix61c_get_value, METH_VARARGS, "Dont think this matters"},
-    {"set", (PyCFunction)&Matrix61c_set_value, METH_VARARGS, "Dont think this matters"},
+    {"get", (PyCFunction)Matrix61c_get_value, METH_VARARGS, "Dont think this matters"},
+    {"set", (PyCFunction)Matrix61c_set_value, METH_VARARGS, "Dont think this matters"},
     {NULL, NULL, 0, NULL},
 };
 
