@@ -334,9 +334,9 @@ PyObject *Matrix61c_sub(Matrix61c* self, PyObject* args) {
 
     matrix** result = malloc(sizeof(matrix*)); // allocate matrix, allocate matrix61c object using new , get->shape 
     allocate_matrix(result, rows1, cols1); //we forgot that we already made an allocate_matrix method in matrix.c
-    sub_matrix(result, realMat1, realMat2); 
+    sub_matrix(*result, realMat1, realMat2); 
 
-    wrap->mat = result;
+    wrap->mat = *result;
     wrap->shape = get_shape(rows1, cols1);
     return  (PyObject *) wrap; // should we return a Matrix61c * or do we have to cast it?
 }
@@ -365,9 +365,9 @@ PyObject *Matrix61c_multiply(Matrix61c* self, PyObject *args) {
 
     matrix** result = malloc(sizeof(matrix*)); // allocate matrix, allocate matrix61c object using new , get->shape 
     allocate_matrix(result, rows1, cols2); //we forgot that we already made an allocate_matrix method in matrix.c
-    mul_matrix(result, realMat1, realMat2); 
+    mul_matrix(*result, realMat1, realMat2); 
 
-    wrap->mat = result;
+    wrap->mat = *result;
     wrap->shape = get_shape(rows1, cols2);
     return  (PyObject *) wrap; // should we return a Matrix61c * or do we have to cast it?
     
@@ -384,8 +384,8 @@ PyObject *Matrix61c_neg(Matrix61c* self) {
     int cols1 = realMat1->cols;
     matrix** result = malloc(sizeof(matrix*)); // allocate matrix, allocate matrix61c object using new , get->shape 
     allocate_matrix(result, rows1, cols1); //we forgot that we already made an allocate_matrix method in matrix.c
-    neg_matrix(result, realMat1); 
-    wrap->mat = result;
+    neg_matrix(*result, realMat1); 
+    wrap->mat = *result;
     wrap->shape = get_shape(rows1, cols1);
     return  (PyObject *) wrap; // should we return a Matrix61c * or do we have to cast it?
 }
@@ -395,6 +395,18 @@ PyObject *Matrix61c_neg(Matrix61c* self) {
  */
 PyObject *Matrix61c_abs(Matrix61c *self) {
     /* TODO: YOUR CODE HERE */
+    Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
+    matrix* realMat1 = self->mat;
+    int rows1 = realMat1->rows;
+    int cols1 = realMat1->cols;
+
+    matrix** result = malloc(sizeof(matrix*)); // allocate matrix, allocate matrix61c object using new , get->shape 
+    allocate_matrix(result, rows1, cols1); //we forgot that we already made an allocate_matrix method in matrix.c
+    abs_matrix(*result, realMat1); 
+
+    wrap->mat = *result;
+    wrap->shape = get_shape(rows1, cols1);
+    return  (PyObject *) wrap;
 }
 
 /*
@@ -402,6 +414,28 @@ PyObject *Matrix61c_abs(Matrix61c *self) {
  */
 PyObject *Matrix61c_pow(Matrix61c *self, PyObject *pow, PyObject *optional) {
     /* TODO: YOUR CODE HERE */
+    if(!PyLong_Check(pow)) { 
+        PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+        return -1;
+    }
+    int power = PyLong_FromLong(pow); // IDK IF THIS SHOULD BE FROM LONG OR AS LONG, LOOKS LIKE WE ARE INCONSISTENT
+    if(!(self->mat->rows == self->mat->cols) || power<0) {
+        PyErr_SetString(PyExc_ValueError, "Not a square matrix or pow is negative");
+        return -1;
+    }
+
+    Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
+    matrix* realMat1 = self->mat;
+    int rows1 = realMat1->rows;
+    int cols1 = realMat1->cols;
+
+    matrix** result = malloc(sizeof(matrix*)); // allocate matrix, allocate matrix61c object using new , get->shape 
+    allocate_matrix(result, rows1, cols1); //we forgot that we already made an allocate_matrix method in matrix.c
+    pow_matrix(*result,realMat1,power); 
+
+    wrap->mat = *result;
+    wrap->shape = get_shape(rows1, cols1);
+    return  (PyObject *) wrap;
 }
 
 /*
@@ -410,6 +444,12 @@ PyObject *Matrix61c_pow(Matrix61c *self, PyObject *pow, PyObject *optional) {
  */
 PyNumberMethods Matrix61c_as_number = {
     .nb_add = Matrix61c_add,
+    .nb_subtract = Matrix61c_sub,
+    .nb_multiply = Matrix61c_multiply,
+    .nb_power = Matrix61c_pow,
+    .nb_negative = Matrix61c_neg,
+    .nb_absolute = Matrix61c_abs,
+
     /* TODO: YOUR CODE HERE */
 };
 
@@ -422,6 +462,23 @@ PyNumberMethods Matrix61c_as_number = {
  */
 PyObject *Matrix61c_set_value(Matrix61c *self, PyObject* args) {
     /* TODO: YOUR CODE HERE */
+    if(!PyTuple_Check(args)) { 
+        PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+        return -1;
+    }
+    int row;
+    int col;
+    double val;
+    
+    PyArg_ParseTuple(&row, &col, &val);
+    if(row>=(self->mat->rows) || col>=(self->mat->cols) || row<0 || col < 0) {
+        PyErr_SetString(PyExc_IndexError, "Bad Indices");
+        return -1;
+    }
+    matrix* realMat1 = self->mat;
+    //void set(matrix *mat, int row, int col, double val)
+    set(realMat1, row, col, val); 
+    return Py_None;
 }
 
 /*
@@ -431,7 +488,24 @@ PyObject *Matrix61c_set_value(Matrix61c *self, PyObject* args) {
  */
 PyObject *Matrix61c_get_value(Matrix61c *self, PyObject* args) { //ARGS IS A PYTUPLE
     /* TODO: YOUR CODE HERE */
+    if(!PyTuple_Check(args)) { 
+        PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+        return -1;
+    }
+    int row;
+    int col;
+    PyArg_ParseTuple(&row, &col);
+    if(row>=(self->mat->rows) || col>=(self->mat->cols) || row<0 || col < 0) {
+        PyErr_SetString(PyExc_IndexError, "Bad Indices");
+        return -1;
+    }
 
+    Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
+    matrix* realMat1 = self->mat;
+    //double get(matrix *mat, int row, int col)
+    double retVal;
+    retVal = get(realMat1, row, col);
+    return PyFloat_FromDouble(retVal);
 }
 
 /*
@@ -442,6 +516,8 @@ PyObject *Matrix61c_get_value(Matrix61c *self, PyObject* args) { //ARGS IS A PYT
  */
 PyMethodDef Matrix61c_methods[] = {
     /* TODO: YOUR CODE HERE */
+    {"get", (PyCFunction)&Matrix61c_get_value, METH_VARARGS, "Dont think this matters"},
+    {"set", (PyCFunction)&Matrix61c_set_value, METH_VARARGS, "Dont think this matters"},
     {NULL, NULL, 0, NULL}
 };
 
@@ -492,7 +568,7 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
             int col = (int) key % this_mat->cols;
             double val = get(this_mat, row, col);
             double * ret_val = &val;
-            return (PyObject *) PyLong_FromLong(val);
+            return (PyObject *) PyFloat_FromDouble(val);
             // the 2d case and we can see which version works)
         } else {
             //error? -->Ashvin: yeah i guess so lmao
@@ -515,7 +591,7 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
                 secondInt = PyLong_AsLong(secondItem);
                 double val = get(this_mat, firstInt, secondInt);
                 double * ret_val = &val;
-                return (PyObject *) PyLong_FromLong(val); 
+                return (PyObject *) PyFloat_FromDouble(val); 
             } else if (firstIsSlice && secondIsInt) { // case 2: slice, int 
                 
                 secondInt = PyLong_AsLong(secondItem);
