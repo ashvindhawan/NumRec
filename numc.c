@@ -1,6 +1,5 @@
 #include "numc.h"
 #include <structmember.h>
-#include "stdbool.h"
 
 PyTypeObject Matrix61cType;
 
@@ -365,8 +364,9 @@ PyObject *Matrix61c_multiply(Matrix61c* self, PyObject *args) {
 
     matrix** result = malloc(sizeof(matrix*)); // allocate matrix, allocate matrix61c object using new , get->shape 
     allocate_matrix(result, rows1, cols2); //we forgot that we already made an allocate_matrix method in matrix.c
+    //int ret_val;
     mul_matrix(*result, realMat1, realMat2); 
-
+    //return PyLong_FromLong(3);
     wrap->mat = *result;
     wrap->shape = get_shape(rows1, cols2);
     return  (PyObject *) wrap; // should we return a Matrix61c * or do we have to cast it?
@@ -418,7 +418,7 @@ PyObject *Matrix61c_pow(Matrix61c *self, PyObject *pow, PyObject *optional) {
         PyErr_SetString(PyExc_TypeError, "Invalid arguments");
         return -1;
     }
-    int power = PyLong_FromLong(pow); // IDK IF THIS SHOULD BE FROM LONG OR AS LONG, LOOKS LIKE WE ARE INCONSISTENT
+    int power = (int) PyLong_AsLong(pow); 
     if(!(self->mat->rows == self->mat->cols) || power<0) {
         PyErr_SetString(PyExc_ValueError, "Not a square matrix or pow is negative");
         return -1;
@@ -429,8 +429,8 @@ PyObject *Matrix61c_pow(Matrix61c *self, PyObject *pow, PyObject *optional) {
     int rows1 = realMat1->rows;
     int cols1 = realMat1->cols;
 
-    matrix** result = malloc(sizeof(matrix*)); // allocate matrix, allocate matrix61c object using new , get->shape 
-    allocate_matrix(result, rows1, cols1); //we forgot that we already made an allocate_matrix method in matrix.c
+    matrix** result = malloc(sizeof(matrix*)); 
+    allocate_matrix(result, rows1, cols1);
     pow_matrix(*result,realMat1,power); 
 
     wrap->mat = *result;
@@ -466,21 +466,35 @@ PyObject *Matrix61c_set_value(Matrix61c *self, PyObject* args) {
         PyErr_SetString(PyExc_TypeError, "Invalid arguments");
         return -1;
     }
-    int row;
-    int col;
-    double val;
-    
-    PyArg_ParseTuple(args, &row, &col, &val);
-    return PyLong_AsLong(2);
-    if(row>=(self->mat->rows) || col>=(self->mat->cols) || row<0 || col < 0) {
+    PyObject * row;
+    PyObject * col;
+    PyObject * val;
+    if (!PyArg_UnpackTuple(args, "args", 3, 3, &row, &col, &val)) {
+        PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+    }
+    if (!PyLong_Check(row) || !PyLong_Check(col)) {
+        PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+    }
+    if (!PyLong_Check(val) && !PyFloat_Check(val)) {
+        PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+    }
+    int newRow = (int) PyLong_AsLong(row);
+    int newCol =  (int) PyLong_AsLong(col);
+    if(newRow>=(self->mat->rows) || newCol>=(self->mat->cols) || newRow<0 || newCol < 0) {
         PyErr_SetString(PyExc_IndexError, "Bad Indices");
         return -1;
     }
-    matrix* realMat1 = self->mat;
-    //void set(matrix *mat, int row, int col, double val)
-    
-    set(realMat1, row, col, val); 
-    return Py_None;
+    if (PyLong_Check(val)) {
+        int newVal = (int) PyLong_AsLong(val);
+        matrix* realMat1 = self->mat;    
+        set(realMat1, newRow, newCol, newVal); 
+        return Py_None;
+    } else {    
+        double newVal = (double) PyFloat_AsDouble(val);
+        matrix* realMat1 = self->mat;    
+        set(realMat1, newRow, newCol, newVal); 
+        return Py_None;
+    }
 }
 
 /*
@@ -518,8 +532,8 @@ PyObject *Matrix61c_get_value(Matrix61c *self, PyObject* args) { //ARGS IS A PYT
  */
 PyMethodDef Matrix61c_methods[] = {
     /* TODO: YOUR CODE HERE */
-    {"get", (PyCFunction)Matrix61c_get_value, METH_VARARGS, "Dont think this matters"},
-    {"set", (PyCFunction)Matrix61c_set_value, METH_VARARGS, "Dont think this matters"},
+    {"get", (PyCFunction) Matrix61c_get_value, METH_VARARGS, "Dont think this matters"},
+    {"set", (PyCFunction) Matrix61c_set_value, METH_VARARGS, "Dont think this matters"},
     {NULL, NULL, 0, NULL},
 };
 
@@ -532,9 +546,9 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
     
     /* TODO: YOUR CODE HERE */
     matrix* this_mat = self->mat;
-    bool isTuple = PyTuple_Check(key); //this returns an int idk if thats ok or not --> yeah should be okay
-    bool isSlice = PySlice_Check(key);
-    bool isLong = PyLong_Check(key);
+    int isTuple = PyTuple_Check(key); //this returns an int idk if thats ok or not --> yeah should be okay
+    int isSlice = PySlice_Check(key);
+    int isLong = PyLong_Check(key);
     if(this_mat->is_1d != 0) {  //is a 1d matrix
         if(isTuple) {
             PyErr_SetString(PyExc_TypeError, "Invalid arguments");
@@ -582,10 +596,10 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
         if(isTuple) {
             PyObject* firstItem = PyTuple_GetItem(key, 0); //Ashvin: do we need casts here?
             PyObject* secondItem = PyTuple_GetItem(key, 1); //Ashvin :do we need casts here?
-            bool firstIsInt = PyLong_Check(firstItem);
-            bool firstIsSlice = PySlice_Check(firstItem);
-            bool secondIsInt = PyLong_Check(secondItem);
-            bool secondIsSlice = PySlice_Check(secondItem);
+            int firstIsInt = PyLong_Check(firstItem);
+            int firstIsSlice = PySlice_Check(firstItem);
+            int secondIsInt = PyLong_Check(secondItem);
+            int secondIsSlice = PySlice_Check(secondItem);
             long firstInt = NULL;
             long secondInt = NULL;
             if (firstIsInt && secondIsInt) {  //case 1: int, int
