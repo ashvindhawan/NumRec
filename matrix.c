@@ -247,15 +247,29 @@ int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
     /* TODO: YOUR CODE HERE */
     int rows = result->rows;
     int cols = result->cols;
+    double sum;
     double ** mat1_data = mat1->data;
     double ** mat2_data = mat2->data;
-    for (int row = 0; row<rows; row++) {
-        for(int col = 0; col<cols; col++) {
-            double val = dot(mat1_data[row], column(mat2, col), cols);
-            set(result, row, col, val);
+    double ** result_data = result->data;
+    // for (int row = 0; row<rows; row++) {
+    //     for(int col = 0; col<cols; col++) {
+    //         double val = dot(mat1_data[row], column(mat2, col), cols);
+    //         set(result, row, col, val);
+    //     }
+    // }
+    for (int i = 0; i<mat1->rows; i++) {
+        for(int j = 0; j<mat1->cols; j++) {
+            for (int k = 0; k < mat2->cols; k++) {
+                result_data[i][k] += mat1_data[i][j] * mat2_data[j][k];
+            }
         }
     }
     return 0;
+
+// for (int i = 0; i < n; i++)
+//     for (int j = 0; j < n; j++)
+//         for (int k = 0; k < n; k++)
+//             C[i+j*n] += A[i+k*n] * B[k+j*n];
 }
 
 

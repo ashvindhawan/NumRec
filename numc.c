@@ -364,8 +364,9 @@ PyObject *Matrix61c_multiply(Matrix61c* self, PyObject *args) {
 
     matrix** result = malloc(sizeof(matrix*)); // allocate matrix, allocate matrix61c object using new , get->shape 
     allocate_matrix(result, rows1, cols2); //we forgot that we already made an allocate_matrix method in matrix.c
+    //int ret_val;
     mul_matrix(*result, realMat1, realMat2); 
-
+    //return PyLong_FromLong(3);
     wrap->mat = *result;
     wrap->shape = get_shape(rows1, cols2);
     return  (PyObject *) wrap; // should we return a Matrix61c * or do we have to cast it?
@@ -465,20 +466,23 @@ PyObject *Matrix61c_set_value(Matrix61c *self, PyObject* args) {
         PyErr_SetString(PyExc_TypeError, "Invalid arguments");
         return -1;
     }
-    int row;
-    int col;
-    double val;
-    
-    PyArg_ParseTuple(args, &row, &col, &val);
-    return PyLong_AsLong(2);
-    if(row>=(self->mat->rows) || col>=(self->mat->cols) || row<0 || col < 0) {
-        PyErr_SetString(PyExc_IndexError, "Bad Indices");
-        return -1;
-    }
+    PyObject * row;
+    PyObject * col;
+    PyObject * val;
+    PyArg_UnpackTuple(args, "args", 3, 3, &row, &col, &val);
+    // check for itnerger values for row and col here 
+    //PyArg_ParseTuple(args, "l",row, col, val);
+    // if(row>=(self->mat->rows) || col>=(self->mat->cols) || row<0 || col < 0) {
+    //     PyErr_SetString(PyExc_IndexError, "Bad Indices");
+    //     return -1;
+    // }
     matrix* realMat1 = self->mat;
     //void set(matrix *mat, int row, int col, double val)
     
-    set(realMat1, row, col, val); 
+    int newRow = (int) PyLong_AsLong(row);
+    int newCol =  (int) PyLong_AsLong(col);
+    double newVal = (double) PyFloat_AsDouble(val);
+    set(realMat1, newRow, newCol, newVal); 
     return Py_None;
 }
 
@@ -517,8 +521,8 @@ PyObject *Matrix61c_get_value(Matrix61c *self, PyObject* args) { //ARGS IS A PYT
  */
 PyMethodDef Matrix61c_methods[] = {
     /* TODO: YOUR CODE HERE */
-    {"get", (PyCFunction)&Matrix61c_get_value, METH_VARARGS, "Dont think this matters"},
-    {"set", (PyCFunction)&Matrix61c_set_value, METH_VARARGS, "Dont think this matters"},
+    {"get", (PyCFunction) Matrix61c_get_value, METH_VARARGS, "Dont think this matters"},
+    {"set", (PyCFunction) Matrix61c_set_value, METH_VARARGS, "Dont think this matters"},
     {NULL, NULL, 0, NULL},
 };
 
