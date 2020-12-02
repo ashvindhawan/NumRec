@@ -418,7 +418,7 @@ PyObject *Matrix61c_pow(Matrix61c *self, PyObject *pow, PyObject *optional) {
         PyErr_SetString(PyExc_TypeError, "Invalid arguments");
         return -1;
     }
-    int power = PyLong_FromLong(pow); // IDK IF THIS SHOULD BE FROM LONG OR AS LONG, LOOKS LIKE WE ARE INCONSISTENT
+    int power = (int) PyLong_AsLong(pow); 
     if(!(self->mat->rows == self->mat->cols) || power<0) {
         PyErr_SetString(PyExc_ValueError, "Not a square matrix or pow is negative");
         return -1;
@@ -429,8 +429,8 @@ PyObject *Matrix61c_pow(Matrix61c *self, PyObject *pow, PyObject *optional) {
     int rows1 = realMat1->rows;
     int cols1 = realMat1->cols;
 
-    matrix** result = malloc(sizeof(matrix*)); // allocate matrix, allocate matrix61c object using new , get->shape 
-    allocate_matrix(result, rows1, cols1); //we forgot that we already made an allocate_matrix method in matrix.c
+    matrix** result = malloc(sizeof(matrix*)); 
+    allocate_matrix(result, rows1, cols1);
     pow_matrix(*result,realMat1,power); 
 
     wrap->mat = *result;
@@ -469,21 +469,32 @@ PyObject *Matrix61c_set_value(Matrix61c *self, PyObject* args) {
     PyObject * row;
     PyObject * col;
     PyObject * val;
-    PyArg_UnpackTuple(args, "args", 3, 3, &row, &col, &val);
-    // check for itnerger values for row and col here 
-    //PyArg_ParseTuple(args, "l",row, col, val);
-    // if(row>=(self->mat->rows) || col>=(self->mat->cols) || row<0 || col < 0) {
-    //     PyErr_SetString(PyExc_IndexError, "Bad Indices");
-    //     return -1;
-    // }
-    matrix* realMat1 = self->mat;
-    //void set(matrix *mat, int row, int col, double val)
-    
+    if (!PyArg_UnpackTuple(args, "args", 3, 3, &row, &col, &val)) {
+        PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+    }
+    if (!PyLong_Check(row) || !PyLong_Check(col)) {
+        PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+    }
+    if (!PyLong_Check(val) && !PyFloat_Check(val)) {
+        PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+    }
     int newRow = (int) PyLong_AsLong(row);
     int newCol =  (int) PyLong_AsLong(col);
-    double newVal = (double) PyFloat_AsDouble(val);
-    set(realMat1, newRow, newCol, newVal); 
-    return Py_None;
+    if(newRow>=(self->mat->rows) || newCol>=(self->mat->cols) || newRow<0 || newCol < 0) {
+        PyErr_SetString(PyExc_IndexError, "Bad Indices");
+        return -1;
+    }
+    if (PyLong_Check(val)) {
+        int newVal = (int) PyLong_AsLong(val);
+        matrix* realMat1 = self->mat;    
+        set(realMat1, newRow, newCol, newVal); 
+        return Py_None;
+    } else {    
+        double newVal = (double) PyFloat_AsDouble(val);
+        matrix* realMat1 = self->mat;    
+        set(realMat1, newRow, newCol, newVal); 
+        return Py_None;
+    }
 }
 
 /*

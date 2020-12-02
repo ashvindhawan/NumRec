@@ -287,6 +287,7 @@ int pow_matrix(matrix *result, matrix *mat, int pow) {
         mul_matrix(result, *placeholder, mat);
         copy(result, *placeholder);
     }
+    copy(result, *placeholder);
     return 0;
 }
 
