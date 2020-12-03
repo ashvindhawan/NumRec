@@ -275,67 +275,11 @@ int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
     double ** mat1_data = mat1->data;
     double ** mat2_data = mat2->data;
     double ** result_data = result->data;
-
-    // for (int i = 0; i<mat1->rows; i++) {
-    //     for(int j = 0; j<mat1->cols; j++) {
-    //         for (int k = 0; k < mat2->cols; k++) {
-    //             result_data[i][k] += mat1_data[i][j] * mat2_data[j][k];
-    //         }
-    //     }
-    // }
-
-    // for (int i = 0; i<mat1->rows; i++) {
-    //     for(int k = 0; k < mat2->cols; k++) {
-    //         result_data[i][k] = 0.0;
-    //         for (int j = 0; j<mat1->cols; j++) {
-    //             result_data[i][k] += mat1_data[i][j] * mat2_data[j][k];
-    //         }
-    //     }
-    // }
-    // return 0;
-
-    // ----------------------------------
-
-    // base            1.16, 3.04, .36
-    // cache sum       1.43, 3.34, .78
-    // unroll x4       1.72, 3.60, .54
-    // cache rows/cols 1.75, 3.48, .55
-
-    // int m1r = mat1->rows;
-    // int m1c = mat1->cols;
-    // int m2r = mat2->rows;
-    // int m2c = mat2->cols;
-
-    // double s;
-    // for (int i = 0; i < m1r; i++) {
-    //     for(int k = 0; k < m2c; k++) {
-    //         s = 0.0;
-    //         for (int j = 0; j<m1c / 4 * 4; j+=4) {
-    //             s += mat1_data[i][j] * mat2_data[j][k];
-    //             s += mat1_data[i][j+1] * mat2_data[j+1][k];
-    //             s += mat1_data[i][j+2] * mat2_data[j+2][k];
-    //             s += mat1_data[i][j+3] * mat2_data[j+3][k];
-    //         }
-
-    //         for (int j = m1c / 4 * 4; j<m1c; j++) {
-    //             s += mat1_data[i][j] * mat2_data[j][k];
-    //         }
-
-    //         result_data[i][k] = s;
-    //     }
-    // }
-    // return 0;
-
-    // ----------------------------------
     
-    // base       1.75, 3.48, .55
-    // 
     int m1r = mat1->rows;
     int m1c = mat1->cols;
     int m2r = mat2->rows;
     int m2c = mat2->cols;
-
-    
 
     for (int i = 0; i < m1r; i++) {
         for(int k = 0; k < m2c; k++) {
