@@ -852,6 +852,30 @@ int Matrix61c_set_subscript(Matrix61c* self, PyObject *key, PyObject *v) {
                 }
             } 
 
+        } else {
+            Py_ssize_t size = PyList_Size(v);
+            if(size!=((temp->mat->rows))) {
+                PyErr_SetString(PyExc_ValueError, "Incompatible types");
+                return -1;
+            }
+            for(int i = 0; i < size; i++) {
+                PyObject* item = PyList_GetItem(v, i);
+                Py_ssize_t colSize = PyList_Size(item);
+                if(colSize!=((temp->mat->cols))) {
+                    PyErr_SetString(PyExc_ValueError, "Incompatible types");
+                    return -1;
+                }
+                for (int j = 0; j<colSize; j++) {
+                    PyObject* element = PyList_GetItem(item, j);
+                    if(!PyLong_Check(element) && !PyFloat_Check(element)) {
+                        PyErr_SetString(PyExc_ValueError, "Incompatible types");
+                        return -1;
+                    }
+                    set(temp->mat, i, j, PyFloat_AsDouble(element));
+                }
+                
+            }
+
         }
     }
     return 0;
