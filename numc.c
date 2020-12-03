@@ -473,6 +473,13 @@ PyObject *Matrix61c_set_value(Matrix61c *self, PyObject* args) {
         PyErr_SetString(PyExc_TypeError, "Invalid arguments");
         return NULL;
     }
+    double newVal;
+    if (PyLong_Check(val)) {
+        newVal = (double) PyLong_AsLong(val);
+    } else if(PyFloat_Check(val)) {
+        newVal = PyFloat_AsDouble(val);
+    }
+
     if (!PyLong_Check(row) || !PyLong_Check(col)) {
         PyErr_SetString(PyExc_TypeError, "Invalid arguments");
         return NULL;
@@ -483,22 +490,12 @@ PyObject *Matrix61c_set_value(Matrix61c *self, PyObject* args) {
     }
     int newRow = (int) PyLong_AsLong(row);
     int newCol =  (int) PyLong_AsLong(col);
-    if(newRow>=(self->mat->rows) || newCol>=(self->mat->cols) || newRow<0 || newCol < 0) {
+    if(newRow >= self->mat->rows || newCol >= self->mat->cols || newRow<0 || newCol < 0) {
         PyErr_SetString(PyExc_IndexError, "Bad Indices");
         return NULL;
     }
-    double newVal;
-    if (PyLong_Check(val)) {
-        newVal = (double) PyLong_AsLong(val);
-        matrix* realMat1 = self->mat;    
-        set(realMat1, newRow, newCol, newVal); 
-        return Py_None;
-    } else {    
-        newVal = PyFloat_AsDouble(val);
-        matrix* realMat1 = self->mat;    
-        set(realMat1, newRow, newCol, newVal); 
-        return Py_None;
-    }
+    set(self->mat, newRow, newCol, newVal); 
+    return Py_None;
 }
 
 /*
