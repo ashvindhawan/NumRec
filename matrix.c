@@ -111,9 +111,15 @@ int allocate_matrix_ref(matrix **mat, matrix *from, int row_offset, int col_offs
     (*mat)->rows = rows;
     (*mat)->cols = cols;
     (*mat)->parent = from;
+
+    (*mat)->ref_cnt = 1;
+    matrix* curParent = (*mat)->parent;
+    while(curParent!=NULL) {
+        curParent->ref_cnt = curParent->ref_cnt + 1;
+        curParent = curParent->parent;
+    }
+    //from->ref_cnt = from->ref_cnt + 1; this needs to bubble all the way up 
     
-    from->ref_cnt = from->ref_cnt + 1;
-    (*mat)->ref_cnt = 2;
     if (rows == 1 || cols == 1) {
         (*mat)->is_1d = 1;
     } else {
@@ -139,16 +145,32 @@ int allocate_matrix_ref(matrix **mat, matrix *from, int row_offset, int col_offs
  * See the spec for more information.
  */
 void deallocate_matrix(matrix *mat) {
-    if(mat == NULL) {
+    // if(mat == NULL) {
+    //     return;
+    // } else if (mat->ref_cnt <= 1) {
+    //     int rows = mat->rows;
+    //     for(int row = 0; row<rows; row++) {
+    //         free((mat->data)[row]);
+    //     }
+    //     free(mat);
+    //     return;
+    // } else {
+    //     free(mat);
+    // }
+    if (mat == NULL) {
         return;
-    } else if (mat->ref_cnt <= 1) {
-        int rows = mat->rows;
-        for(int row = 0; row<rows; row++) {
-            free((mat->data)[row]);
+    }
+    mat->ref_cnt = mat->ref_cnt - 1;
+    if(mat->parent != NULL) {
+        deallocate_matrix(mat->parent);
+    }
+    if(mat->ref_cnt==0) {
+	    if(mat->parent==NULL) {
+        	for(int row = 0; row<mat->rows; row++) {
+                double ** data = mat->data;
+            	free(data[row]);
+            }  
         }
-        free(mat);
-        return;
-    } else {
         free(mat);
     }
 }
@@ -203,6 +225,7 @@ int add_matrix(matrix *result, matrix *mat1, matrix *mat2) {
             set(result, i, j, elem1 + elem2);
         }
     }
+    return 0;
 }
 
 /*
@@ -220,6 +243,7 @@ int sub_matrix(matrix *result, matrix *mat1, matrix *mat2) {
             set(result, i, j, elem1 - elem2);
         }
     }
+    return 0;
 }
 
 double dot(double* row, double* col, int len) {
@@ -263,15 +287,6 @@ int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
 
 }
 
-void set_values(matrix *from, matrix *to) {
-    for (int row = 0; row < (from -> rows); row++){
-        for (int col = 0; col < (from -> cols); col++){
-            double val = get(from, row, col);
-            set(to, row, col, val);
-        }
-    }
-}
-
 /*
  * Store the result of raising mat to the (pow)th power to `result`.
  * Return 0 upon success and a nonzero value upon failure.
@@ -279,46 +294,16 @@ void set_values(matrix *from, matrix *to) {
  */
 int pow_matrix(matrix *result, matrix *mat, int pow) {
     /* TODO: YOUR CODE HERE */
-    // matrix ** placeholder = malloc(sizeof(matrix *));
-    // allocate_matrix(placeholder, mat->rows, mat->cols);
-    // mul_matrix(*placeholder, mat, mat);
-    // for (int i = 0; i < pow-2; i++) {
-    //     mul_matrix(result, *placeholder, mat);
-    //     copy(result, *placeholder);
-    // }
-    // copy(result, *placeholder);
-    // deallocate_matrix(*placeholder);
-    // return 0;
-    int rows = mat -> rows;
-    int cols = mat -> cols;
-    matrix *temp = NULL;
-    allocate_matrix(&temp, rows, cols);
-    for (int i = 0; i < rows; i += 1) {
-        for (int j = 0; j < cols; j += 1) {
-            if (i == j) {
-                double temp1 = 1;
-                set(temp, i, j, temp1);
-            }
-        }
+    matrix ** placeholder = malloc(sizeof(matrix *));
+    allocate_matrix(placeholder, mat->rows, mat->cols);
+    mul_matrix(*placeholder, mat, mat);
+    for (int i = 0; i < pow-2; i++) {
+        mul_matrix(result, *placeholder, mat);
+        copy(result, *placeholder);
     }
-    if (pow < 0 || rows != cols){
-        return -1;
-    }
-    //Identity
-    if (pow == 0){
-        set_values(temp, result);
-        deallocate_matrix(temp);
-        return 0;
-    } else {
-        //Sets result to mat
-        //Multiplies mat by itself 
-        for(int i = 0; i < pow; i++){
-            mul_matrix(result, temp, mat);
-            set_values(result, temp);
-        }
-        deallocate_matrix(temp);
-        return 0;
-    }
+    copy(result, *placeholder);
+    deallocate_matrix(*placeholder);
+    return 0;
 }
 
 
