@@ -92,12 +92,15 @@ class TestPow(TestCase):
     def test_small_pow(self):
         # TODO: YOUR CODE HERE
         dp_mat, nc_mat = rand_dp_nc_matrix(2, 2, seed=0)
-        is_correct, speed_up = compute([dp_mat, 3], [nc_mat, 3], "pow")
+        is_correct, speed_up = compute([dp_mat, 6], [nc_mat, 6], "pow")
         self.assertTrue(is_correct)
         print_speedup(speed_up)
 
     def test_medium_pow(self):
-        # TODO: YOUR CODE HERE
+        # dp_mat, nc_mat = rand_dp_nc_matrix(100, 100, seed=0)
+        # is_correct, speed_up = compute([dp_mat, 2], [nc_mat, 2], "pow")
+        # self.assertTrue(is_correct)
+        # print_speedup(speed_up)
         pass
 
     def test_large_pow(self):
@@ -115,10 +118,12 @@ class TestGet(TestCase):
 
 class TestSet(TestCase):
     def test_set(self):
-        # TODO: YOUR CODE HERE
         dp_mat, nc_mat = rand_dp_nc_matrix(2, 2, seed=0)
         rand_row = np.random.randint(dp_mat.shape[0])
         rand_col = np.random.randint(dp_mat.shape[1])
+        dp_mat.set(rand_row, rand_col, 10)
+        nc_mat.set(rand_row, rand_col, 10)
+        cmp_dp_nc_matrix(dp_mat, nc_mat)
         self.assertEquals(round(dp_mat[rand_row][rand_col], decimal_places),
             round(nc_mat[rand_row][rand_col], decimal_places))
 

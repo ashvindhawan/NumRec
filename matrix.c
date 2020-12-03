@@ -251,12 +251,7 @@ int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
     double ** mat1_data = mat1->data;
     double ** mat2_data = mat2->data;
     double ** result_data = result->data;
-    // for (int row = 0; row<rows; row++) {
-    //     for(int col = 0; col<cols; col++) {
-    //         double val = dot(mat1_data[row], column(mat2, col), cols);
-    //         set(result, row, col, val);
-    //     }
-    // }
+
     for (int i = 0; i<mat1->rows; i++) {
         for(int j = 0; j<mat1->cols; j++) {
             for (int k = 0; k < mat2->cols; k++) {
@@ -266,12 +261,16 @@ int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
     }
     return 0;
 
-// for (int i = 0; i < n; i++)
-//     for (int j = 0; j < n; j++)
-//         for (int k = 0; k < n; k++)
-//             C[i+j*n] += A[i+k*n] * B[k+j*n];
 }
 
+void set_values(matrix *from, matrix *to) {
+    for (int row = 0; row < (from -> rows); row++){
+        for (int col = 0; col < (from -> cols); col++){
+            double val = get(from, row, col);
+            set(to, row, col, val);
+        }
+    }
+}
 
 /*
  * Store the result of raising mat to the (pow)th power to `result`.
@@ -280,17 +279,48 @@ int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
  */
 int pow_matrix(matrix *result, matrix *mat, int pow) {
     /* TODO: YOUR CODE HERE */
-    matrix ** placeholder = malloc(sizeof(matrix *));
-    allocate_matrix(placeholder, mat->rows, mat->cols);
-    mul_matrix(*placeholder, mat, mat);
-    for (int i = 0; i < pow-2; i++) {
-        mul_matrix(result, *placeholder, mat);
-        copy(result, *placeholder);
+    // matrix ** placeholder = malloc(sizeof(matrix *));
+    // allocate_matrix(placeholder, mat->rows, mat->cols);
+    // mul_matrix(*placeholder, mat, mat);
+    // for (int i = 0; i < pow-2; i++) {
+    //     mul_matrix(result, *placeholder, mat);
+    //     copy(result, *placeholder);
+    // }
+    // copy(result, *placeholder);
+    // deallocate_matrix(*placeholder);
+    // return 0;
+    int rows = mat -> rows;
+    int cols = mat -> cols;
+    matrix *temp = NULL;
+    allocate_matrix(&temp, rows, cols);
+    for (int i = 0; i < rows; i += 1) {
+        for (int j = 0; j < cols; j += 1) {
+            if (i == j) {
+                double temp1 = 1;
+                set(temp, i, j, temp1);
+            }
+        }
     }
-    copy(result, *placeholder);
-    deallocate_matrix(*placeholder);
-    return 0;
+    if (pow < 0 || rows != cols){
+        return -1;
+    }
+    //Identity
+    if (pow == 0){
+        set_values(temp, result);
+        deallocate_matrix(temp);
+        return 0;
+    } else {
+        //Sets result to mat
+        //Multiplies mat by itself 
+        for(int i = 0; i < pow; i++){
+            mul_matrix(result, temp, mat);
+            set_values(result, temp);
+        }
+        deallocate_matrix(temp);
+        return 0;
+    }
 }
+
 
 void copy(matrix * src, matrix* dest) {
     // int** src_data = src->data;

@@ -469,7 +469,7 @@ PyObject *Matrix61c_set_value(Matrix61c *self, PyObject* args) {
     PyObject * row;
     PyObject * col;
     PyObject * val;
-    if (PyArg_UnpackTuple(args, "args", 3, 3, &row, &col, &val)==0) {
+    if (!PyArg_UnpackTuple(args, "args", 3, 3, &row, &col, &val)) {
         PyErr_SetString(PyExc_TypeError, "Invalid arguments");
         return NULL;
     }
@@ -487,13 +487,14 @@ PyObject *Matrix61c_set_value(Matrix61c *self, PyObject* args) {
         PyErr_SetString(PyExc_IndexError, "Bad Indices");
         return NULL;
     }
+    double newVal;
     if (PyLong_Check(val)) {
-        int newVal = (int) PyLong_AsLong(val);
+        newVal = (double) PyLong_AsLong(val);
         matrix* realMat1 = self->mat;    
         set(realMat1, newRow, newCol, newVal); 
         return Py_None;
     } else {    
-        double newVal = (double) PyFloat_AsDouble(val);
+        newVal = PyFloat_AsDouble(val);
         matrix* realMat1 = self->mat;    
         set(realMat1, newRow, newCol, newVal); 
         return Py_None;
