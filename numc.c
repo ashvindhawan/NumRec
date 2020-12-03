@@ -523,8 +523,8 @@ PyObject *Matrix61c_get_value(Matrix61c *self, PyObject* args) { //ARGS IS A PYT
     /* TODO: YOUR CODE HERE **/
     int row, col;
 
-    if(!PyArg_ParseTuple(args, "iid", &row, &col)) {
-        PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+    if(!PyArg_ParseTuple(args, "ii", &row, &col)) {
+        PyErr_SetString(PyExc_TypeError, "Invalid arguments--");
         return NULL;
     }
 
