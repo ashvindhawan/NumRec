@@ -579,16 +579,26 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
             Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
             wrap->mat = *result;
             wrap->shape = get_shape((*result)->rows, (*result)->cols);
-            return (PyObject *) wrap;
-
+            if((*result)->rows == 1 && (*result)->cols==1) {
+                double ** data = (*result)->data;
+                return PyFloat_FromDouble(data[0][0]);
+            } else {
+                return (PyObject *) wrap;
+            }
         } else if (isLong) {  
             int pos = PyLong_AsLong(key);
-            int row = (int) floor(pos/this_mat->cols);
-            int col = (int) key % this_mat->cols;
-            double val = get(this_mat, row, col);
+            double ** data = this_mat->data;
+            // int row = (int) floor(pos/this_mat->cols);
+            // int col = (int) key % this_mat->cols;
+            double val;
+            if(this_mat->rows == 1) {
+                val = get(this_mat, 0, pos);
+            }
+            else if(this_mat->cols == 1) {
+                val = get(this_mat, pos, 0);
+            }
             double * ret_val = &val;
             return (PyObject *) PyFloat_FromDouble(val);
-            // the 2d case and we can see which version works)
         } else {
             //error? -->Ashvin: yeah i guess so lmao
             PyErr_SetString(PyExc_TypeError, "Invalid arguments");
@@ -628,7 +638,12 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
                 Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
                 wrap->mat = *result;
                 wrap->shape = get_shape((*result)->rows, (*result)->cols);
-                return (PyObject *) wrap;
+                if((*result)->rows == 1 && (*result)->cols==1) {
+                    double ** data = (*result)->data;
+                    return PyFloat_FromDouble(data[0][0]);
+                } else {
+                    return (PyObject *) wrap;
+                }
             } else if (firstIsInt && secondIsSlice) { // case 3: int, slice
                 
                 firstInt = PyLong_AsLong(firstItem);
@@ -645,7 +660,12 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
                 Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
                 wrap->mat = *result;
                 wrap->shape = get_shape((*result)->rows, (*result)->cols);
-                return (PyObject *) wrap;
+                if((*result)->rows == 1 && (*result)->cols==1) {
+                    double ** data = (*result)->data;
+                    return PyFloat_FromDouble(data[0][0]);
+                } else {
+                    return (PyObject *) wrap;
+                }
             } else if (firstIsSlice && secondIsSlice) { // case 4: slice, slice
                 Py_ssize_t  length1 = this_mat->rows;
                 Py_ssize_t  start1;
@@ -668,7 +688,12 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
                 Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
                 wrap->mat = *result;
                 wrap->shape = get_shape((*result)->rows, (*result)->cols);
-                return (PyObject *) wrap;
+                if((*result)->rows == 1 && (*result)->cols==1) {
+                    double ** data = (*result)->data;
+                    return PyFloat_FromDouble(data[0][0]);
+                } else {
+                    return (PyObject *) wrap;
+                }
             } else {
                 
             }
@@ -686,7 +711,12 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
             Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
             wrap->mat = *result;
             wrap->shape = get_shape((*result)->rows, (*result)->cols);
-            return (PyObject *) wrap;
+            if((*result)->rows == 1 && (*result)->cols==1) {
+                double ** data = (*result)->data;
+                return PyFloat_FromDouble(data[0][0]);
+            } else {
+                return (PyObject *) wrap;
+            }
         } else if (isLong) { 
             matrix** result = malloc(sizeof(matrix*));
             int rowOff = PyLong_AsLong(key);
@@ -695,7 +725,12 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
             Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
             wrap->mat = *result;
             wrap->shape = get_shape((*result)->rows, (*result)->cols);
-            return (PyObject *) wrap;
+            if((*result)->rows == 1 && (*result)->cols==1) {
+                double ** data = (*result)->data;
+                return PyFloat_FromDouble(data[0][0]);
+            } else {
+                return (PyObject *) wrap;
+            }
         }
     }
     
@@ -708,9 +743,118 @@ PyObject *Matrix61c_subscript(Matrix61c* self, PyObject* key) {
  */
 int Matrix61c_set_subscript(Matrix61c* self, PyObject *key, PyObject *v) {
     /* TODO: YOUR CODE HERE */
-    v = Matrix61c_subscript(self, key);
+    PyObject * test = Matrix61c_subscript(self, key);
+    if(PyFloat_Check(test)) { //here it's not a matrix
+        if(!PyFloat_Check(v) && !PyLong_Check(v)) {
+            PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+            return -1;
+        }
+        if (self->mat->is_1d) {
+            if(PySlice_Check(key)) { //key is a slice
+                Py_ssize_t length = (self->mat->rows)*(self->mat->cols);
+                Py_ssize_t start;
+                Py_ssize_t stop;
+                Py_ssize_t step;  
+                Py_ssize_t slicelength;
+                PySlice_GetIndicesEx(key, length, &start, &stop, &step, &slicelength);
+                if(self->mat->rows==1) {
+                    //void set(matrix *mat, int row, int col, double val)
+                    set(self->mat, 0, start, PyFloat_AsDouble(v));
+                } else if(self->mat->cols==1) {
+                    set(self->mat, start, 0, PyFloat_AsDouble(v));
+                }
+            } else if(PyLong_Check(key)) {
+                int ind = PyLong_AsLong(key);
+                if(self->mat->rows==1) {
+                    //void set(matrix *mat, int row, int col, double val)
+                    set(self->mat, 0, ind, PyFloat_AsDouble(v));
+                } else if(self->mat->cols==1) {
+                    set(self->mat, ind, 0, PyFloat_AsDouble(v));
+                } 
+            }
+        } else { //2D matrix, subscript return single float
+            PyObject* firstItem = PyTuple_GetItem(key, 0); //Ashvin: do we need casts here?
+            PyObject* secondItem = PyTuple_GetItem(key, 1); //Ashvin :do we need casts here?
+            int firstIsInt = PyLong_Check(firstItem);
+            int firstIsSlice = PySlice_Check(firstItem);
+            int secondIsInt = PyLong_Check(secondItem);
+            int secondIsSlice = PySlice_Check(secondItem);
+            long firstInt = NULL;
+            long secondInt = NULL;
+            if (firstIsInt && secondIsInt) {  //case 1: int, int
+                firstInt = PyLong_AsLong(firstItem);
+                secondInt = PyLong_AsLong(secondItem);
+                set(self->mat, firstInt, secondInt, PyFloat_AsDouble(v));
+            } else if (firstIsSlice && secondIsInt) { // case 2: slice, int 
+                secondInt = PyLong_AsLong(secondItem);
+                Py_ssize_t  length = self->mat->rows;
+                Py_ssize_t  start;
+                Py_ssize_t  stop;
+                Py_ssize_t  step;  
+                Py_ssize_t  slicelength;
+                PySlice_GetIndicesEx(firstItem, length, &start, &stop, &step, &slicelength); 
+                set(self->mat, start, secondInt, PyFloat_AsDouble(v));
+            } else if (firstIsInt && secondIsSlice) { // case 3: int, slice
+                firstInt = PyLong_AsLong(firstItem);
+                Py_ssize_t  length = self->mat->rows;
+                Py_ssize_t  start;
+                Py_ssize_t  stop;
+                Py_ssize_t  step;  
+                Py_ssize_t  slicelength;
+                PySlice_GetIndicesEx(secondItem, length, &start, &stop, &step, &slicelength); 
+                set(self->mat, firstInt, start, PyFloat_AsDouble(v));
+            } else if (firstIsSlice && secondIsSlice) { // case 4: slice, slice
+                Py_ssize_t  length1 = self->mat->rows;
+                Py_ssize_t  start1;
+                Py_ssize_t  stop1;
+                Py_ssize_t  step1;  
+                Py_ssize_t  slicelength1;
+                PySlice_GetIndicesEx(firstItem, length1, &start1, &stop1, &step1, &slicelength1);
+                Py_ssize_t  length2 = self->mat->rows;
+                Py_ssize_t  start2;
+                Py_ssize_t  stop2;
+                Py_ssize_t  step2;  
+                Py_ssize_t  slicelength2;
+                PySlice_GetIndicesEx(secondItem, length2, &start2, &stop2, &step2, &slicelength2);
+                set(self->mat, start1, start2, PyFloat_AsDouble(v));
+            }
+        }
+    } else if(PyObject_TypeCheck(test, &Matrix61cType)) { //here it's a matrix
+        if(!PyList_Check(v)) {
+            PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+            return -1;
+        }
+        Matrix61c * temp = (Matrix61c*) Matrix61c_subscript(self, key);
+        int isSlice1D = temp->mat->is_1d;
+        if(isSlice1D) {
+            Py_ssize_t size = PyList_Size(v);
+            if(size!=((temp->mat->rows)*(temp->mat->cols))) {
+                PyErr_SetString(PyExc_ValueError, "Incompatible types");
+                return -1;
+            }
+            if(temp->mat->rows==1) {
+                for(int i = 0; i < size; i ++) {
+                    PyObject* item = PyList_GetItem(v, i);
+                    if(!PyLong_Check(item) && !PyFloat_Check(item)) {
+                        PyErr_SetString(PyExc_ValueError, "Incompatible types");
+                        return -1;
+                    }
+                    set(temp->mat, 0, i, PyFloat_AsDouble(item));  
+                }
+            } else if(temp->mat->cols==1) {
+                for(int i = 0; i < size; i ++) {
+                    PyObject* item = PyList_GetItem(v, i);
+                    if(!PyLong_Check(item) && !PyFloat_Check(item)) {
+                        PyErr_SetString(PyExc_ValueError, "Incompatible types");
+                        return -1;
+                    }
+                    set(temp->mat, i, 0, PyFloat_AsDouble(item));  
+                }
+            } 
+
+        }
+    }
     return 0;
-    
 }
 
 PyMappingMethods Matrix61c_mapping = {
