@@ -288,12 +288,12 @@ PyObject *Matrix61c_repr(PyObject *self) {
 PyObject *Matrix61c_add(Matrix61c* self, PyObject* args) {
     if(!PyObject_TypeCheck(args, &Matrix61cType)) { 
         PyErr_SetString(PyExc_TypeError, "Invalid arguments");
-        return -1;
+        return NULL;
     }
     Matrix61c* mat2 = (Matrix61c*) args;
     if(!(self->mat->rows==mat2->mat->rows && self->mat->cols==mat2->mat->cols)) {
         PyErr_SetString(PyExc_ValueError, "Incorrect number of elements in list");
-        return -1;
+        return NULL;
     }
     Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
     matrix* realMat1 = self->mat;
@@ -317,12 +317,12 @@ PyObject *Matrix61c_add(Matrix61c* self, PyObject* args) {
 PyObject *Matrix61c_sub(Matrix61c* self, PyObject* args) {
     if(!PyObject_TypeCheck(args, &Matrix61cType)) { 
         PyErr_SetString(PyExc_TypeError, "Invalid arguments");
-        return -1;
+        return NULL;
     }
     Matrix61c* mat2 = (Matrix61c*) args;
     if(!(self->mat->rows==mat2->mat->rows && self->mat->cols==mat2->mat->cols)) {
         PyErr_SetString(PyExc_ValueError, "Incorrect number of elements in list");
-        return -1;
+        return NULL;
     }
 
     Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
@@ -348,12 +348,12 @@ PyObject *Matrix61c_multiply(Matrix61c* self, PyObject *args) {
     /* TODO: YOUR CODE HERE */
     if(!PyObject_TypeCheck(args, &Matrix61cType)) { 
         PyErr_SetString(PyExc_TypeError, "Invalid arguments");
-        return -1;
+        return NULL;
     }
     Matrix61c* mat2 = (Matrix61c*) args;
     if(!(self->mat->cols==mat2->mat->rows)) {
         PyErr_SetString(PyExc_ValueError, "Incorrect number of elements in list");
-        return -1;
+        return NULL;
     }
 
     Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
@@ -416,12 +416,12 @@ PyObject *Matrix61c_pow(Matrix61c *self, PyObject *pow, PyObject *optional) {
     /* TODO: YOUR CODE HERE */
     if(!PyLong_Check(pow)) { 
         PyErr_SetString(PyExc_TypeError, "Invalid arguments");
-        return -1;
+        return NULL;
     }
     int power = (int) PyLong_AsLong(pow); 
     if(!(self->mat->rows == self->mat->cols) || power<0) {
         PyErr_SetString(PyExc_ValueError, "Not a square matrix or pow is negative");
-        return -1;
+        return NULL;
     }
 
     Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
@@ -464,25 +464,28 @@ PyObject *Matrix61c_set_value(Matrix61c *self, PyObject* args) {
     /* TODO: YOUR CODE HERE */
     if(!PyTuple_Check(args)) { 
         PyErr_SetString(PyExc_TypeError, "Invalid arguments");
-        return -1;
+        return NULL;
     }
     PyObject * row;
     PyObject * col;
     PyObject * val;
-    if (!PyArg_UnpackTuple(args, "args", 3, 3, &row, &col, &val)) {
+    if (PyArg_UnpackTuple(args, "args", 3, 3, &row, &col, &val)==0) {
         PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+        return NULL;
     }
     if (!PyLong_Check(row) || !PyLong_Check(col)) {
         PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+        return NULL;
     }
     if (!PyLong_Check(val) && !PyFloat_Check(val)) {
         PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+        return NULL;
     }
     int newRow = (int) PyLong_AsLong(row);
     int newCol =  (int) PyLong_AsLong(col);
     if(newRow>=(self->mat->rows) || newCol>=(self->mat->cols) || newRow<0 || newCol < 0) {
         PyErr_SetString(PyExc_IndexError, "Bad Indices");
-        return -1;
+        return NULL;
     }
     if (PyLong_Check(val)) {
         int newVal = (int) PyLong_AsLong(val);
@@ -506,14 +509,14 @@ PyObject *Matrix61c_get_value(Matrix61c *self, PyObject* args) { //ARGS IS A PYT
     /* TODO: YOUR CODE HERE */
     if(!PyTuple_Check(args)) { 
         PyErr_SetString(PyExc_TypeError, "Invalid arguments");
-        return -1;
+        return NULL;
     }
     int row;
     int col;
     PyArg_ParseTuple(args, &row, &col);
     if(row>=(self->mat->rows) || col>=(self->mat->cols) || row<0 || col < 0) {
         PyErr_SetString(PyExc_IndexError, "Bad Indices");
-        return -1;
+        return NULL;
     }
 
     Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);

@@ -288,6 +288,7 @@ int pow_matrix(matrix *result, matrix *mat, int pow) {
         copy(result, *placeholder);
     }
     copy(result, *placeholder);
+    deallocate_matrix(*placeholder);
     return 0;
 }
 
