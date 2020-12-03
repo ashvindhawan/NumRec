@@ -504,7 +504,7 @@ PyObject *Matrix61c_set_value(Matrix61c *self, PyObject* args) {
  * float/int.
  */
 PyObject *Matrix61c_get_value(Matrix61c *self, PyObject* args) { //ARGS IS A PYTUPLE
-    /* TODO: YOUR CODE HERE */
+    /* TODO: YOUR CODE HERE **/
     if(!PyTuple_Check(args)) { 
         PyErr_SetString(PyExc_TypeError, "Invalid arguments");
         return NULL;
@@ -535,7 +535,7 @@ PyMethodDef Matrix61c_methods[] = {
     /* TODO: YOUR CODE HERE */
     {"get", (PyCFunction) Matrix61c_get_value, METH_VARARGS, "Dont think this matters"},
     {"set", (PyCFunction) Matrix61c_set_value, METH_VARARGS, "Dont think this matters"},
-    {NULL, NULL, 0, NULL},
+    {NULL, NULL, 0, NULL}
 };
 
 /* INDEXING */
