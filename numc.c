@@ -462,39 +462,55 @@ PyNumberMethods Matrix61c_as_number = {
  */
 PyObject *Matrix61c_set_value(Matrix61c *self, PyObject* args) {
     /* TODO: YOUR CODE HERE */
-    if(!PyTuple_Check(args)) { 
+    // if(!PyTuple_Check(args)) { 
+    //     PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+    //     return NULL;
+    // }
+    // PyObject * row;
+    // PyObject * col;
+    // PyObject * val;
+    // if (!PyArg_UnpackTuple(args, "args", 3, 3, &row, &col, &val)) {
+    //     PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+    //     return NULL;
+    // }
+    // double newVal;
+    // if (PyLong_Check(val)) {
+    //     newVal = (double) PyLong_AsLong(val);
+    // } else if(PyFloat_Check(val)) {
+    //     newVal = PyFloat_AsDouble(val);
+    // }
+
+    // if (!PyLong_Check(row) || !PyLong_Check(col)) {
+    //     PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+    //     return NULL;
+    // }
+    // if (!PyLong_Check(val) && !PyFloat_Check(val)) {
+    //     PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+    //     return NULL;
+    // }
+    // int newRow = (int) PyLong_AsLong(row);
+    // int newCol =  (int) PyLong_AsLong(col);
+    // if(newRow >= self->mat->rows || newCol >= self->mat->cols || newRow<0 || newCol < 0) {
+    //     PyErr_SetString(PyExc_IndexError, "Bad Indices");
+    //     return NULL;
+    // }
+    // set(self->mat, newRow, newCol, newVal); 
+    // return Py_None;
+
+    int row, col;
+    double val;
+
+    if(!PyArg_ParseTuple(args, "iid", &row, &col, &val)) {
         PyErr_SetString(PyExc_TypeError, "Invalid arguments");
         return NULL;
-    }
-    PyObject * row;
-    PyObject * col;
-    PyObject * val;
-    if (!PyArg_UnpackTuple(args, "args", 3, 3, &row, &col, &val)) {
-        PyErr_SetString(PyExc_TypeError, "Invalid arguments");
-        return NULL;
-    }
-    double newVal;
-    if (PyLong_Check(val)) {
-        newVal = (double) PyLong_AsLong(val);
-    } else if(PyFloat_Check(val)) {
-        newVal = PyFloat_AsDouble(val);
     }
 
-    if (!PyLong_Check(row) || !PyLong_Check(col)) {
-        PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+    if(row >= self->mat->rows || col >= self->mat->cols || row<0 || col < 0) {
+        PyErr_SetString(PyExc_IndexError, "row or column index out of range");
         return NULL;
     }
-    if (!PyLong_Check(val) && !PyFloat_Check(val)) {
-        PyErr_SetString(PyExc_TypeError, "Invalid arguments");
-        return NULL;
-    }
-    int newRow = (int) PyLong_AsLong(row);
-    int newCol =  (int) PyLong_AsLong(col);
-    if(newRow >= self->mat->rows || newCol >= self->mat->cols || newRow<0 || newCol < 0) {
-        PyErr_SetString(PyExc_IndexError, "Bad Indices");
-        return NULL;
-    }
-    set(self->mat, newRow, newCol, newVal); 
+
+    set(self->mat, row, col, val); 
     return Py_None;
 }
 
