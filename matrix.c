@@ -276,9 +276,17 @@ int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
     double ** mat2_data = mat2->data;
     double ** result_data = result->data;
 
+    // for (int i = 0; i<mat1->rows; i++) {
+    //     for(int j = 0; j<mat1->cols; j++) {
+    //         for (int k = 0; k < mat2->cols; k++) {
+    //             result_data[i][k] += mat1_data[i][j] * mat2_data[j][k];
+    //         }
+    //     }
+    // }
     for (int i = 0; i<mat1->rows; i++) {
-        for(int j = 0; j<mat1->cols; j++) {
-            for (int k = 0; k < mat2->cols; k++) {
+        for(int k = 0; k < mat2->cols; k++) {
+            result_data[i][k] = 0.0;
+            for (int j = 0; j<mat1->cols; j++) {
                 result_data[i][k] += mat1_data[i][j] * mat2_data[j][k];
             }
         }
@@ -296,13 +304,33 @@ int pow_matrix(matrix *result, matrix *mat, int pow) {
     /* TODO: YOUR CODE HERE */
     matrix ** placeholder = malloc(sizeof(matrix *));
     allocate_matrix(placeholder, mat->rows, mat->cols);
-    mul_matrix(*placeholder, mat, mat);
-    for (int i = 0; i < pow-2; i++) {
-        mul_matrix(result, *placeholder, mat);
-        copy(result, *placeholder);
+    // mul_matrix(*placeholder, mat, mat);
+    for(int i = 0; i < mat->rows; i++) {
+        set(result, i, i, 1.0);
+        set(*placeholder, i, i, 1.0);
     }
-    copy(result, *placeholder);
+
+    // for (int i = 0; i < pow; i++) {
+    //     mul_matrix(result, *placeholder, mat);
+    //     copy(result, *placeholder);
+    // }
+
+    matrix * t1 = result;
+    matrix * t2 = *placeholder;
+
+    for (int i = 0; i < pow; i++) {
+        mul_matrix(t1, t2, mat);
+        matrix * temp = t1;
+        t1 = t2;
+        t2 = temp;
+    }
+
+    if (pow % 2 == 0) {
+        copy(*placeholder, result);
+    }
+    
     deallocate_matrix(*placeholder);
+    free(placeholder);
     return 0;
 }
 
