@@ -521,24 +521,20 @@ PyObject *Matrix61c_set_value(Matrix61c *self, PyObject* args) {
  */
 PyObject *Matrix61c_get_value(Matrix61c *self, PyObject* args) { //ARGS IS A PYTUPLE
     /* TODO: YOUR CODE HERE **/
-    if(!PyTuple_Check(args)) { 
+    int row, col;
+
+    if(!PyArg_ParseTuple(args, "iid", &row, &col)) {
         PyErr_SetString(PyExc_TypeError, "Invalid arguments");
         return NULL;
     }
-    int row;
-    int col;
-    PyArg_ParseTuple(args, &row, &col);
+
     if(row>=(self->mat->rows) || col>=(self->mat->cols) || row<0 || col < 0) {
         PyErr_SetString(PyExc_IndexError, "Bad Indices");
         return NULL;
     }
 
-    Matrix61c* wrap = (Matrix61c*) Matrix61c_new(&Matrix61cType, NULL, NULL);
-    matrix* realMat1 = self->mat;
-    //double get(matrix *mat, int row, int col)
-    double retVal;
-    retVal = get(realMat1, row, col);
-    return PyFloat_FromDouble(retVal);
+    double ret_val = get(self->mat, row, col);
+    return PyFloat_FromDouble(ret_val);
 }
 
 /*
