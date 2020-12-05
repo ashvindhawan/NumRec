@@ -281,7 +281,9 @@ int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
     int m2r = mat2->rows;
     int m2c = mat2->cols;
 
+    #pragma omp parallel for
     for (int i = 0; i < m1r; i++) {
+        #pragma omp parallel for
         for(int k = 0; k < m2c; k++) {
             __m256d sum_vec = _mm256_set1_pd(0.0);
             for (int j = 0; j<m1c / 4 * 4; j+=4) {
