@@ -472,7 +472,54 @@ int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
             }
         }
     }
+    return 0;
+}
+
+int mul_matrix_pow(matrix *result, matrix *mat1, matrix *mat2) {
+    double ** mat1_data = mat1->data;
+    double ** mat2_data = mat2->data;
+    double ** result_data = result->data;
     
+    int m1r = mat1->rows, m1c = mat1->cols, m2r = mat2->rows, m2c = mat2->cols;
+
+    int m2c_e = m2c / (4*UNROLL) * 4*UNROLL;
+
+    double * A = *(mat1->data);
+    double * B = *(mat2->data);
+    double * C = *(result->data);
+
+    #pragma omp parallel for collapse(2)
+    for (int i = 0; i < m1r; i++) {
+        for (int j = 0; j < m2c_e; j+=4*UNROLL) {
+            __m256d c[UNROLL];
+
+            for (int x = 0; x < UNROLL; x ++)
+                c[x] = _mm256_setzero_pd();
+
+            for (int k = 0; k < m1c; k++) {
+                __m256d a = _mm256_broadcast_sd(A + i * m1c + k);
+                for (int x = 0; x < UNROLL; x++) {
+                    __m256d b = _mm256_loadu_pd(B + k * m2c + (j+4*x));
+                    c[x] = _mm256_fmadd_pd(a, b, c[x]);
+                }
+            }
+            
+            for (int x = 0; x < UNROLL; x++)
+                _mm256_storeu_pd(C + i * m2c + (j + x * 4), c[x]);
+        }
+    }    
+
+    #pragma omp parallel for collapse(2)
+    for (int i = 0; i < m1r; ++i) {
+        for (int j = m2c_e; j < m2c; ++j) {
+            double s = 0.0;
+            for (int k = 0; k < m1c; ++k) {              
+                s += A[i * m1c + k] * B[k * m2c + j];
+            }
+            C[i * m2c + j] = s;
+        }
+    }         
+
     return 0;
 }
 
@@ -494,17 +541,17 @@ int pow_matrix(matrix *result, matrix *mat, int pow) {
 
     #pragma omp parallel for
     for(int i = 0; i < mat->rows; i++) {
-        set(result, i, i, 1.0);
+        (*(result->data))[i + i * result->cols] = 1.0;
     }
 
     while (pow) {
         if (pow % 2 != 0) {
-            mul_matrix(t, result, x);
+            mul_matrix_pow(t, result, x);
             copy(t, result);
             pow -= 1;
         }
 
-        mul_matrix(t, x, x);
+        mul_matrix_pow(t, x, x);
         copy(t, x);
         pow /= 2;
     }
