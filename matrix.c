@@ -190,7 +190,6 @@ void deallocate_matrix(matrix *mat) {
 double get(matrix *mat, int row, int col) {
     double **data = mat->data;
     return (double) data[row][col];
-    /* TODO: YOUR CODE HERE */
 }
 
 /*
@@ -229,32 +228,16 @@ int add_matrix(matrix *result, matrix *mat1, matrix *mat2) {
     int rows = result->rows;
     int cols = result->cols;
 
-    // #pragma omp parallel for collapse(2)
-    // for (int i = 0; i<rows; i++) {
-    //     for (int j = 0; j<cols; j++) {
-    //         double elem1 = get(mat1, i, j);
-    //         double elem2 = get(mat2, i, j);
-    //         set(result, i, j, elem1 + elem2);
-    //     }
-    // }
-
     double **A = mat1->data;
     double **B = mat2->data;
     double **C = result->data;
 
-    #pragma omp parallel for
-    for (int i = 0; i<rows; ++i) {
-        memcpy(C[i], B[i], cols * sizeof(double));
-        for (int j = 0; j<cols / 4 * 4; j+= 4) {
-            // _mm256_storeu_pd(C[i] + j, _mm256_add_pd (_mm256_loadu_pd (A[i] + j), _mm256_loadu_pd (B[i]+ j)));
-            _mm256_storeu_pd(C[i] + j, _mm256_add_pd (_mm256_loadu_pd (A[i] + j), _mm256_loadu_pd (C[i] + j)));
-        }
-
-        for (int j = cols / 4 * 4; j < cols; ++j) {
-            C[i][j] = C[i][j] + B[i][j];
+    #pragma omp parallel for collapse(2)
+    for (int i = 0; i<rows; i++) {
+        for (int j = 0; j<cols; j++) {
+            C[i][j] = A[i][j] + B[i][j];
         }
     }
-    return 0;
 }
 
 /*
@@ -265,6 +248,8 @@ int sub_matrix(matrix *result, matrix *mat1, matrix *mat2) {
     /* TODO: YOUR CODE HERE */
     int rows = result->rows;
     int cols = result->cols;
+
+    // #pragma omp parallel for collapse(2)
     // for (int i = 0; i<rows; i++) {
     //     for (int j = 0; j<cols; j++) {
     //         double elem1 = get(mat1, i, j);
@@ -277,33 +262,13 @@ int sub_matrix(matrix *result, matrix *mat1, matrix *mat2) {
     double **B = mat2->data;
     double **C = result->data;
 
-    #pragma omp parallel for
-    for (int i = 0; i<rows; ++i) {
-        for (int j = 0; j<cols / 4 * 4; j+= 4) {
-            _mm256_storeu_pd(C[i] + j, _mm256_sub_pd (_mm256_loadu_pd (A[i] + j), _mm256_loadu_pd (B[i]+ j)));
-        }
-
-        for (int j = cols / 4 * 4; j < cols; ++j) {
+    #pragma omp parallel for collapse(2)
+    for (int i = 0; i<rows; i++) {
+        for (int j = 0; j<cols; j++) {
             C[i][j] = A[i][j] - B[i][j];
         }
     }
     return 0;
-}
-
-double dot(double* row, double* col, int len) {
-    double ans = 0;
-    for(int i = 0; i < len; i ++) {
-        ans = ans + (row[i] * col[i]);
-    }
-    return ans;
-}
-
-double* column(matrix *mat, int index) {
-    double * col = malloc((mat->rows)*sizeof(int));
-    for(int i = 0; i < mat->rows; i++) {
-        col[i] = get(mat, i, index);
-    }
-    return col;
 }
 
 /*
@@ -336,7 +301,8 @@ int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
             __m256d c[UNROLL];
 
             for (int x = 0; x < UNROLL; x ++)
-                c[x] = _mm256_loadu_pd(result_data[i] + (j + x * 4));
+                // c[x] = _mm256_loadu_pd(result_data[i] + (j + x * 4));
+                c[x] = _mm256_setzero_pd();
 
             for (int k = 0; k < m1c; k++) {
                 __m256d a = _mm256_broadcast_sd(mat1_data[i] + k);
@@ -415,77 +381,62 @@ int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
  */
 int pow_matrix(matrix *result, matrix *mat, int pow) {
     /* TODO: YOUR CODE HERE */
-    matrix ** placeholder = malloc(sizeof(matrix *));
-    allocate_matrix(placeholder, mat->rows, mat->cols);
-    // mul_matrix(*placeholder, mat, mat);
+
+    matrix ** tt = malloc(sizeof(matrix *));
+    allocate_matrix(tt, mat->rows, mat->cols);
+    matrix * t = *tt;
+
+    matrix ** xx = malloc(sizeof(matrix *));
+    allocate_matrix(xx, mat->rows, mat->cols);
+    matrix * x = *xx;
+
+    copy(mat, x);
+
     #pragma omp parallel for
     for(int i = 0; i < mat->rows; i++) {
         set(result, i, i, 1.0);
-        set(*placeholder, i, i, 1.0);
     }
 
-    // for (int i = 0; i < pow; i++) {
-    //     mul_matrix(result, *placeholder, mat);
-    //     copy(result, *placeholder);
-    // }
-
-    matrix * t1 = result;
-    matrix * t2 = *placeholder;
-
-    // for (int i = 0; i < pow; i++) {
-    //     mul_matrix(t1, t2, mat);
-    //     matrix * temp = t1;
-    //     t1 = t2;
-    //     t2 = temp;
-    // }
-
-    // if (pow % 2 == 0) {
-    //     copy(*placeholder, result);
-    // }
-    
-    // deallocate_matrix(*placeholder);
-    // free(placeholder);
-    // return 0;
-
-    int swaps = 0;
     while (pow) {
-        if (pow % 2 == 1) {
-            mul_matrix(t1, t2, mat);
+        if (pow % 2 != 0) {
+            mul_matrix(t, result, x);
+            copy(t, result);
             pow -= 1;
-            matrix * temp = t1;
-            t1 = t2;
-            t2 = temp;
-        } else {
-            mul_matrix(t1, t2, t2);
-            pow = pow / 2;
-            matrix * temp = t1;
-            t1 = t2;
-            t2 = temp;
         }
-        ++swaps;
+
+        mul_matrix(t, x, x);
+        copy(t, x);
+        pow /= 2;
     }
 
-    if (swaps % 2 == 0) {
-        copy(*placeholder, result);
-    }
+    deallocate_matrix(*tt);
+    free(tt);
 
-    deallocate_matrix(*placeholder);
-    free(placeholder);
+    deallocate_matrix(*xx);
+    free(xx);
+    
     return 0;
 }
 
 
 void copy(matrix * src, matrix* dest) {
-    // int** src_data = src->data;
-    // int** dest_data = dest->data;
     int rows = src->rows;
     int cols = src->cols;
-    #pragma omp parallel for collapse(2)
+    // #pragma omp parallel for collapse(2)
+    // for(int row = 0; row < rows; row++) {
+    //     for(int col = 0; col < cols; col++) {
+    //         set(dest, row, col, get(src, row, col));
+    //     }
+    // }
+
+    double ** dst_data = dest->data;
+    double ** src_data = src->data;
+
+    #pragma omp parallel for
     for(int row = 0; row < rows; row++) {
-        for(int col = 0; col < cols; col++) {
-            set(dest, row, col, get(src, row, col));
-        }
+        memcpy(dst_data[row], src_data[row], cols * sizeof(double));
     }
+
 }
 
 /*
@@ -495,10 +446,17 @@ void copy(matrix * src, matrix* dest) {
 int neg_matrix(matrix *result, matrix *mat) {
     int rows = result->rows;
     int cols = result->cols;
+
+    double ** src_data = mat->data;
+    double ** dst_data = result->data;
+
+    #pragma omp parallel for collapse(2)
     for (int i = 0; i<rows; i++) {
         for (int j = 0; j<cols; j++) {
-            double elem = get(mat, i, j);
-            set(result, i, j, -elem);
+            dst_data[i][j] = -src_data[i][j];
+
+            // double elem = get(mat, i, j);
+            // set(result, i, j, -elem);
         }
     }
     return 0;
@@ -512,13 +470,14 @@ int abs_matrix(matrix *result, matrix *mat) {
     /* TODO: YOUR CODE HERE */
     int rows = result->rows;
     int cols = result->cols;
+
+    double ** src_data = mat->data;
+    double ** dst_data = result->data;
+
+    #pragma omp parallel for collapse(2)
     for (int i = 0; i<rows; i++) {
         for (int j = 0; j<cols; j++) {
-            double elem = get(mat, i, j);
-            if (elem < 0) {
-                elem = elem * -1;
-            }
-            set(result, i, j, elem);
+            dst_data[i][j] = fabs(src_data[i][j]);
         }
     }
     return 0;
