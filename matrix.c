@@ -398,8 +398,9 @@ int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
         }
     }
 
+    #pragma omp parallel for collapse(2)
     for (int si = 0; si < m1r_e; si = si + BLOCKSIZE) {
-        for (int sj = m2c_e; sj < m2c; sj = ++sj) { 
+        for (int sj = m2c_e; sj < m2c; ++sj) { 
             for (int sk = 0; sk < m2r_e; sk = sk + BLOCKSIZE) {
                 for (int i=si; i < si+BLOCKSIZE; ++i) {
                     double s = C[i * m2c + sj];
@@ -418,7 +419,8 @@ int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
         }
     }
 
-    for (int si = m1r_e; si < m1r; si = ++si) {
+    #pragma omp parallel for collapse(2)
+    for (int si = m1r_e; si < m1r; ++si) {
         for (int sj = 0; sj < m2c_e; sj = sj + BLOCKSIZE) { 
             for (int sk = 0; sk < m2r_e; sk = sk + BLOCKSIZE) {
                 _mm_prefetch (C + si * m2c + (sj + 0), _MM_HINT_NTA);
@@ -457,8 +459,9 @@ int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
         }
     }
 
-    for (int si = m1r_e; si < m1r; si = ++si) {
-        for (int sj = m2c_e; sj < m2c; sj = ++sj) { 
+    #pragma omp parallel for collapse(2)
+    for (int si = m1r_e; si < m1r; ++si) {
+        for (int sj = m2c_e; sj < m2c; ++sj) { 
             for (int sk = 0; sk < m2r_e; sk = sk + BLOCKSIZE) {
                 double s = C[si * m2c + sj];
                 for (int k = sk; k < sk+BLOCKSIZE; ++k) {
@@ -546,12 +549,12 @@ int pow_matrix(matrix *result, matrix *mat, int pow) {
 
     while (pow) {
         if (pow % 2 != 0) {
-            mul_matrix_pow(t, result, x);
+            mul_matrix(t, result, x);
             copy(t, result);
             pow -= 1;
         }
 
-        mul_matrix_pow(t, x, x);
+        mul_matrix(t, x, x);
         copy(t, x);
         pow /= 2;
     }
