@@ -527,28 +527,6 @@ int neg_matrix(matrix *result, matrix *mat) {
     int rows = result->rows;
     int cols = result->cols;
 
-    // double ** src_data = mat->data;
-    // double ** dst_data = result->data;
-
-    // #pragma omp parallel for collapse(2)
-    // for (int i = 0; i<rows; i++) {
-    //     for (int j = 0; j<cols; j++) {
-    //         dst_data[i][j] = -src_data[i][j];
-    //     }
-    // }
-
-    // double * src_data = *(mat->data);
-    // double * dst_data = *(result->data);
-
-    // #pragma omp parallel for collapse(2)
-    // for (int i = 0; i<rows; i++) {
-    //     for (int j = 0; j<cols; j++) {
-    //         int offset = i * cols + j;
-    //         dst_data[offset] = -src_data[offset];
-    //     }
-    // }
-    // return 0;
-
     double *A = *(mat->data);
     double *B = *(result->data);
 
@@ -574,6 +552,12 @@ int neg_matrix(matrix *result, matrix *mat) {
 
 }
 
+
+inline __m256d _m256_abs_pd(__m256d a) {
+    const __m256d abs_mask = _mm256_set1_pd(-0.);
+    return _mm256_andnot_pd(abs_mask, a); 
+}
+
 /*
  * Store the result of taking the absolute value element-wise to `result`.
  * Return 0 upon success and a nonzero value upon failure.
@@ -587,14 +571,15 @@ int abs_matrix(matrix *result, matrix *mat) {
 
     int boundary = cols / 4 * 4;
     
-    const __m256d absmask = _mm256_castsi256_pd(_mm256_set1_epi32(~(1<<63)));
+    const __m256d b = _mm256_set1_pd(-1.0);
 
     #pragma omp parallel for collapse(2)
     for (int i = 0; i<rows; i++) {
         for (int j = 0; j<boundary; j+= 4) {
             int offset = i * cols + j;
             __m256d a = _mm256_loadu_pd(A + offset);
-            _mm256_storeu_pd(B + offset, _mm256_and_pd(absmask, a));
+            _mm256_storeu_pd(B + offset, _mm256_max_pd(_mm256_mul_pd(b, a), a));
+            // _mm256_storeu_pd(B + offset, _m256_abs_pd(a));
         }
     }
 
