@@ -325,7 +325,8 @@ double* column(matrix *mat, int index) {
 #define BLOCKSIZE 64
 
 
-int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
+int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) { 
+    //Henry: need to add remainders (i.e. when matrix isn't a multiple of blocksize) otherwise it segfaults
     /* TODO: YOUR CODE HERE */
     // int rows = result->rows;
     // int cols = result->cols;
@@ -375,15 +376,15 @@ int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
             //         memset(&result_data[i][j], 0, BLOCKSIZE *sizeof(double));
             //     }
             // }
-            memset(&result_data[si][sj], 0, BLOCKSIZE *sizeof(double));
-            for (int sk = 0; sk < m2c; sk = sk + BLOCKSIZE) {
-                for (int i=si; i < si+BLOCKSIZE; ++i) {
+            memset(&result_data[si][sj], 0, BLOCKSIZE *sizeof(double)); // set result data to 0 
+            for (int sk = 0; sk < m2c; sk = sk + BLOCKSIZE) { // iterate through matrix 2's columns
+                for (int i=si; i < si+BLOCKSIZE; ++i) { //loop unrolling
                     _mm_prefetch (&result_data[i][sj + BLOCKSIZE / 2], _MM_HINT_NTA);
                     // _mm_prefetch (C + i * m2c + (sj + BLOCKSIZE / 2), _MM_HINT_NTA);
                     for (int j =sj; j < sj+BLOCKSIZE; j = j + 4*UNROLL) {
                         __m256d c[UNROLL];
                         for (int x = 0; x < UNROLL; ++x) {
-                            c[x] = _mm256_loadu_pd(&result_data[i][j + x * 4]);
+                            c[x] = _mm256_loadu_pd(&result_data[i][j + x * 4]); //creating a place to store cumulative sum
                             // c[x] = _mm256_loadu_pd(C + i * m2c + (j + x * 4));
                         }
                         for (int k = sk; k < sk+BLOCKSIZE; ++k) {
