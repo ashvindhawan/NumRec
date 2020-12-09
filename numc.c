@@ -352,7 +352,7 @@ PyObject *Matrix61c_multiply(Matrix61c* self, PyObject *args) {
     }
     Matrix61c* mat2 = (Matrix61c*) args;
     if(!(self->mat->cols==mat2->mat->rows)) {
-        PyErr_SetString(PyExc_ValueError, "Incorrect number of elements in list");
+        PyErr_SetString(PyExc_ValueError, "Dimensions Incorrect");
         return NULL;
     }
 
