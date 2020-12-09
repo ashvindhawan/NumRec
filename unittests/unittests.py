@@ -49,8 +49,10 @@ class TestAbs(TestCase):
         print_speedup(speed_up)
 
     def test_medium_abs(self):
-        # TODO: YOUR CODE HERE
-        pass
+        dp_mat, nc_mat = rand_dp_nc_matrix(4049, 4049, seed=0)
+        is_correct, speed_up = compute([dp_mat], [nc_mat], "abs")
+        self.assertTrue(is_correct)
+        print_speedup(speed_up)
 
     def test_large_abs(self):
         # TODO: YOUR CODE HERE
@@ -64,8 +66,10 @@ class TestNeg(TestCase):
         self.assertTrue(is_correct)
         print_speedup(speed_up)
     def test_medium_neg(self):
-        # TODO: YOUR CODE HERE
-        pass
+        dp_mat, nc_mat = rand_dp_nc_matrix(4049, 4049, seed=0)
+        is_correct, speed_up = compute([dp_mat], [nc_mat], "neg")
+        self.assertTrue(is_correct)
+        print_speedup(speed_up)
 
     def test_large_neg(self):
         # TODO: YOUR CODE HERE
