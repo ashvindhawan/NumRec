@@ -295,9 +295,15 @@ int sub_matrix(matrix *result, matrix *mat1, matrix *mat2) {
  * Return 0 upon success and a nonzero value upon failure.
  * Remember that matrix multiplication is not the same as multiplying individual elements.
  */
+// 4 64
+// 4 16 works well
+// 8 32 works best
+// 16 64 works well
+// 32 128 does not work well
+// 64 256 does not work well
 
-#define UNROLL 4
-#define BLOCKSIZE 64
+#define UNROLL 8
+#define BLOCKSIZE 32
 
 int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
     double ** mat1_data = mat1->data;
@@ -306,47 +312,48 @@ int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
     
     int m1r = mat1->rows, m1c = mat1->cols, m2r = mat2->rows, m2c = mat2->cols;
 
-    // int m2c_e = m2c / (4*UNROLL) * 4*UNROLL;
+    double * A = *(mat1->data);
+    double * B = *(mat2->data);
+    double * C = *(result->data);
 
-    // double * A = *(mat1->data);
-    // double * B = *(mat2->data);
-    // double * C = *(result->data);
+    if (m2c < 256 || m1r < 256 || m1c < 256 || m2r < 256) {
+        int m2c_e = m2c / (4 * UNROLL) * 4 * UNROLL;
+        for (int i = 0; i < m1r; i++) {
+            for (int j = 0; j < m2c_e; j+=4*UNROLL) {
+                __m256d c[UNROLL];
 
-    // #pragma omp parallel for collapse(2)
-    // for (int i = 0; i < m1r; i++) {
-    //     for (int j = 0; j < m2c_e; j+=4*UNROLL) {
-    //         __m256d c[UNROLL];
+                for (int x = 0; x < UNROLL; x ++)
+                    c[x] = _mm256_setzero_pd();
 
-    //         for (int x = 0; x < UNROLL; x ++)
-    //             c[x] = _mm256_setzero_pd();
+                for (int k = 0; k < m1c; k++) {
+                    __m256d a = _mm256_broadcast_sd(A + i * m1c + k);
+                    for (int x = 0; x < UNROLL; x++) {
+                        __m256d b = _mm256_loadu_pd(B + k * m2c + (j+4*x));
+                        c[x] = _mm256_fmadd_pd(a, b, c[x]);
+                    }
+                }
+                
+                for (int x = 0; x < UNROLL; x++)
+                    _mm256_storeu_pd(C + i * m2c + (j + x * 4), c[x]);
+            }
+        }    
 
-    //         for (int k = 0; k < m1c; k++) {
-    //             __m256d a = _mm256_broadcast_sd(A + i * m1c + k);
-    //             for (int x = 0; x < UNROLL; x++) {
-    //                 __m256d b = _mm256_loadu_pd(B + k * m2c + (j+4*x));
-    //                 c[x] = _mm256_fmadd_pd(a, b, c[x]);
-    //             }
-    //         }
-            
-    //         for (int x = 0; x < UNROLL; x++)
-    //             _mm256_storeu_pd(C + i * m2c + (j + x * 4), c[x]);
-    //     }
-    // }    
+        for (int i = 0; i < m1r; ++i) {
+            for (int j = m2c_e; j < m2c; ++j) {
+                double s = 0.0;
+                for (int k = 0; k < m1c; ++k) {              
+                    s += A[i * m1c + k] * B[k * m2c + j];
+                }
+                C[i * m2c + j] = s;
+            }
+        }
 
-    // #pragma omp parallel for collapse(2)
-    // for (int i = 0; i < m1r; ++i) {
-    //     for (int j = m2c_e; j < m2c; ++j) {
-    //         double s = 0.0;
-    //         for (int k = 0; k < m1c; ++k) {              
-    //             s += A[i * m1c + k] * B[k * m2c + j];
-    //         }
-    //         C[i * m2c + j] = s;
-    //     }
-    // }         
+        return 0;
+    }         
 
-    double * A = *mat1->data;
-    double * B = *mat2->data;
-    double * C = *result->data;
+    // double * A = *mat1->data;
+    // double * B = *mat2->data;
+    // double * C = *result->data;
 
     int m1r_e = m1r / BLOCKSIZE * BLOCKSIZE;
     int m2r_e = m2r / BLOCKSIZE * BLOCKSIZE;
@@ -532,6 +539,7 @@ int mul_matrix_pow(matrix *result, matrix *mat1, matrix *mat2) {
  * Remember that pow is defined with matrix multiplication, not element-wise multiplication.
  */
 int pow_matrix(matrix *result, matrix *mat, int pow) {
+    matrix * fin = result;
     matrix ** tt = malloc(sizeof(matrix *));
     allocate_matrix(tt, mat->rows, mat->cols);
     matrix * t = *tt;
@@ -547,17 +555,27 @@ int pow_matrix(matrix *result, matrix *mat, int pow) {
         (*(result->data))[i + i * result->cols] = 1.0;
     }
 
+    // int swaps = 0;
     while (pow) {
         if (pow % 2 != 0) {
             mul_matrix(t, result, x);
-            copy(t, result);
+            // memcpy(*(result->data), *(t->data), result->rows * result->cols * sizeof(double));
+            matrix * temp = result;
+            result = t;
+            t = temp;
             pow -= 1;
         }
 
         mul_matrix(t, x, x);
-        copy(t, x);
+        // memcpy(*(x->data), *(t->data), x->rows * x->cols * sizeof(double));
+        matrix * temp = x;
+        x = t;
+        t = temp;
         pow /= 2;
     }
+
+    if (result != fin)
+        copy(result, fin);
 
     deallocate_matrix(*tt);
     free(tt);
@@ -567,7 +585,6 @@ int pow_matrix(matrix *result, matrix *mat, int pow) {
     
     return 0;
 }
-
 
 void copy(matrix * src, matrix* dest) {
     memcpy(*(dest->data), *(src->data), dest->rows * dest->cols * sizeof(double));
